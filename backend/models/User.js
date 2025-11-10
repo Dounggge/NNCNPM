@@ -19,15 +19,38 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: false, // Optional
     unique: true,
+    sparse: true, // Allow null
     lowercase: true,
     trim: true
   },
+  canCuocCongDan: { // Thêm field này để link với NhanKhau
+    type: String,
+    unique: true,
+    sparse: true,
+    length: 12
+  },
+  nhanKhauId: { // Reference to NhanKhau
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'NhanKhau',
+    required: false
+  },
   vaiTro: {
     type: String,
-    enum: ['admin', 'staff', 'user'],
-    default: 'user'
+    enum: [
+      'admin',        // Quản trị viên hệ thống
+      'to_truong',    // Tổ trưởng tổ dân phố
+      'ke_toan',      // Kế toán (quản lý thu phí)
+      'chu_ho',       // Chủ hộ
+      'dan_cu'        // Dân cư thông thường
+    ],
+    default: 'dan_cu'
+  },
+  trangThai: {
+    type: String,
+    enum: ['active', 'inactive', 'suspended'],
+    default: 'active'
   },
   ngayTao: {
     type: Date,

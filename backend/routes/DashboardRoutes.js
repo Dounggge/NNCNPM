@@ -3,10 +3,10 @@ const router = express.Router();
 const NhanKhau = require('../models/NhanKhau');
 const HoKhau = require('../models/HoKhau');
 const PhieuThu = require('../models/PhieuThu');
-const { authMiddleware } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth'); // ← SỬA: authMiddleware → authenticate
 
 // Thống kê tổng quan
-router.get('/stats', authMiddleware, async (req, res) => {
+router.get('/stats', authenticate, async (req, res) => { // ← SỬA
   try {
     const tongHoKhau = await HoKhau.countDocuments();
     const tongNhanKhau = await NhanKhau.countDocuments();
@@ -82,12 +82,13 @@ router.get('/stats', authMiddleware, async (req, res) => {
       phanBoDoTuoi
     });
   } catch (error) {
+    console.error('❌ Stats error:', error);
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
 // Biểu đồ tăng trưởng dân số 12 tháng
-router.get('/growth-chart', authMiddleware, async (req, res) => {
+router.get('/growth-chart', authenticate, async (req, res) => { // ← SỬA
   try {
     const now = new Date();
     const twelveMonthsAgo = new Date();
@@ -124,6 +125,7 @@ router.get('/growth-chart', authMiddleware, async (req, res) => {
       data
     });
   } catch (error) {
+    console.error('❌ Growth chart error:', error);
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });

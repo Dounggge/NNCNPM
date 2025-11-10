@@ -1,35 +1,39 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-// Middleware xác thực token
-const authMiddleware = (req, res, next) => {
+// Verify token
+const authenticate = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({ message: 'Không có token xác thực' });
+      return res.status(401).json({ message: 'Vui lòng đăng nhập' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-me');
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.trangThai !== 'active') {
+      return res.status(401).json({ message: 'Tài khoản không hợp lệ' });
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Token không hợp lệ hoặc đã hết hạn' });
+    res.status(401).json({ message: 'Token không hợp lệ' });
   }
 };
 
-// Middleware kiểm tra role
-const requireRole = (...allowedRoles) => {
+// Check roles
+const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Chưa xác thực' });
+    if (!roles.includes(req.user.vaiTro)) {
+      return res.status(403).json({ 
+        message: 'Bạn không có quyền truy cập chức năng này' 
+      });
     }
-
-    if (!allowedRoles.includes(req.user.vaiTro)) {
-      return res.status(403).json({ message: 'Không có quyền truy cập' });
-    }
-
     next();
   };
 };
 
-module.exports = { authMiddleware, requireRole };
+module.exports = { authenticate, authorize };

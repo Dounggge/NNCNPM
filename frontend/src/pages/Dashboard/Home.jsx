@@ -1,6 +1,77 @@
+import { useEffect, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
+import { dashboardAPI, hoKhauAPI } from "../../services/api";
 
 export default function Home() {
+  const [stats, setStats] = useState({
+    tongHoKhau: 0,
+    tongNhanKhau: 0,
+    tongPhieuThu: 0,
+    phieuDaDong: 0,
+    phieuChuaDong: 0,
+    tangTruongHoKhau: 0,
+    tangTruongNhanKhau: 0,
+    phanBoDoTuoi: []
+  });
+  const [recentHoKhau, setRecentHoKhau] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, hoKhauRes] = await Promise.all([
+        dashboardAPI.getStats(),
+        hoKhauAPI.getAll({ limit: 5, sort: '-createdAt' })
+      ]);
+      
+      setStats(statsRes.data);
+      setRecentHoKhau(hoKhauRes.data.hoKhaus || []);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Lỗi tải dữ liệu');
+      console.error('Dashboard error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <p className="text-red-600 dark:text-red-400 text-lg mb-4">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <PageMeta
@@ -24,7 +95,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Tổng số hộ</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">1,234</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                  {stats.tongHoKhau.toLocaleString()}
+                </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/10">
                 <svg className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,7 +106,9 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-4 flex items-center text-sm">
-              <span className="text-green-500">+12%</span>
+              <span className={stats.tangTruongHoKhau >= 0 ? "text-green-500" : "text-red-500"}>
+                {stats.tangTruongHoKhau >= 0 ? "+" : ""}{stats.tangTruongHoKhau}%
+              </span>
               <span className="ml-2 text-gray-500 dark:text-gray-400">so với tháng trước</span>
             </div>
           </div>
@@ -44,7 +119,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Tổng số nhân khẩu</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">4,567</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                  {stats.tongNhanKhau.toLocaleString()}
+                </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50 dark:bg-green-500/10">
                 <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,7 +130,9 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-4 flex items-center text-sm">
-              <span className="text-green-500">+8%</span>
+              <span className={stats.tangTruongNhanKhau >= 0 ? "text-green-500" : "text-red-500"}>
+                {stats.tangTruongNhanKhau >= 0 ? "+" : ""}{stats.tangTruongNhanKhau}%
+              </span>
               <span className="ml-2 text-gray-500 dark:text-gray-400">so với tháng trước</span>
             </div>
           </div>
@@ -63,8 +142,10 @@ export default function Home() {
           <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Tạm trú</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">234</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Phiếu đã đóng</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                  {stats.phieuDaDong.toLocaleString()}
+                </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-500/10">
                 <svg className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,8 +154,9 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-4 flex items-center text-sm">
-              <span className="text-yellow-500">+5%</span>
-              <span className="ml-2 text-gray-500 dark:text-gray-400">so với tháng trước</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                Trên tổng {stats.tongPhieuThu} phiếu
+              </span>
             </div>
           </div>
         </div>
@@ -83,8 +165,10 @@ export default function Home() {
           <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Tạm vắng</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">89</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Phiếu chưa đóng</p>
+                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                  {stats.phieuChuaDong.toLocaleString()}
+                </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 dark:bg-red-500/10">
                 <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,8 +177,7 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-4 flex items-center text-sm">
-              <span className="text-red-500">-3%</span>
-              <span className="ml-2 text-gray-500 dark:text-gray-400">so với tháng trước</span>
+              <span className="text-red-500">Cần xử lý</span>
             </div>
           </div>
         </div>
@@ -106,7 +189,7 @@ export default function Home() {
               Biểu đồ tăng trưởng dân số
             </h3>
             <div className="mt-4 flex h-64 items-center justify-center text-gray-400">
-              [Biểu đồ sẽ được thêm vào sau]
+              [Biểu đồ sẽ được thêm vào sau với ChartOne component]
             </div>
           </div>
         </div>
@@ -118,42 +201,30 @@ export default function Home() {
               Phân bố độ tuổi
             </h3>
             <div className="mt-6 space-y-4">
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">0-17 tuổi</span>
-                  <span className="font-medium text-gray-900 dark:text-white">25%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                  <div className="h-2 rounded-full bg-blue-500" style={{ width: '25%' }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">18-35 tuổi</span>
-                  <span className="font-medium text-gray-900 dark:text-white">35%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                  <div className="h-2 rounded-full bg-green-500" style={{ width: '35%' }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">36-60 tuổi</span>
-                  <span className="font-medium text-gray-900 dark:text-white">30%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                  <div className="h-2 rounded-full bg-yellow-500" style={{ width: '30%' }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Trên 60 tuổi</span>
-                  <span className="font-medium text-gray-900 dark:text-white">10%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                  <div className="h-2 rounded-full bg-red-500" style={{ width: '10%' }}></div>
-                </div>
-              </div>
+              {stats.phanBoDoTuoi && stats.phanBoDoTuoi.length > 0 ? (
+                stats.phanBoDoTuoi.map((group, index) => (
+                  <div key={index}>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">{group.label}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {group.value} người ({group.percentage}%)
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          index === 0 ? 'bg-blue-500' : 
+                          index === 1 ? 'bg-green-500' : 
+                          index === 2 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${group.percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Chưa có dữ liệu</p>
+              )}
             </div>
           </div>
         </div>
@@ -175,34 +246,36 @@ export default function Home() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Địa chỉ</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Số nhân khẩu</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Ngày đăng ký</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">HK001234</td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">Nguyễn Văn A</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">123 Đường ABC, Quận 1</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">4</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">08/11/2025</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-600 dark:bg-green-500/10 dark:text-green-500">
-                        Đã xác nhận
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">HK001235</td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">Trần Thị B</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">456 Đường XYZ, Quận 2</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">3</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">07/11/2025</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-500">
-                        Chờ xử lý
-                      </span>
-                    </td>
-                  </tr>
+                  {recentHoKhau.length > 0 ? (
+                    recentHoKhau.map((hoKhau) => (
+                      <tr key={hoKhau._id}>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          {hoKhau.soHoKhau}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          {hoKhau.chuHo?.hoTen || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {hoKhau.diaChiThuongTru || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {hoKhau.thanhVien?.length || 0}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {formatDate(hoKhau.createdAt)}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Chưa có hộ khẩu nào
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
