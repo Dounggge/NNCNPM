@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 
-const AppHeader: React.FC = () => {
+const AppHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
@@ -23,10 +22,10 @@ const AppHeader: React.FC = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
         inputRef.current?.focus();

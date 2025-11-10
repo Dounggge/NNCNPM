@@ -1,5 +1,4 @@
 import Chart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
 import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
@@ -7,7 +6,7 @@ import { MoreDotIcon } from "../../icons";
 
 export default function MonthlyTarget() {
   const series = [75.55];
-  const options: ApexOptions = {
+  const options = {
     colors: ["#465FFF"],
     chart: {
       fontFamily: "Outfit, sans-serif",
@@ -27,7 +26,7 @@ export default function MonthlyTarget() {
         track: {
           background: "#E4E7EC",
           strokeWidth: "100%",
-          margin: 5, // margin is in pixels
+          margin: 5,
         },
         dataLabels: {
           name: {
@@ -72,7 +71,7 @@ export default function MonthlyTarget() {
               Monthly Target
             </h3>
             <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-              Target you’ve set for each month
+              Target you've set for each month
             </p>
           </div>
           <div className="relative inline-block">

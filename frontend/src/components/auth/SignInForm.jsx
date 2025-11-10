@@ -1,14 +1,40 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
+import { authAPI } from "../../services/api";
 
 export default function SignInForm() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await authAPI.login(formData);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
@@ -83,13 +109,26 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
-            <form>
+
+            {error && (
+              <div className="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" />
+                  <Input 
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="admin@test.com" 
+                  />
                 </div>
                 <div>
                   <Label>
@@ -98,6 +137,9 @@ export default function SignInForm() {
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
+                      required
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       placeholder="Enter your password"
                     />
                     <span
@@ -127,8 +169,13 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    size="sm"
+                    disabled={loading}
+                  >
+                    {loading ? 'Signing in...' : 'Sign in'}
                   </Button>
                 </div>
               </div>

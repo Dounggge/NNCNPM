@@ -3,27 +3,18 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 
-interface CalendarEvent extends EventInput {
-  extendedProps: {
-    calendar: string;
-  };
-}
-
-const Calendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
+const Calendar = () => {
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
   const [eventLevel, setEventLevel] = useState("");
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const calendarRef = useRef<FullCalendar>(null);
+  const [events, setEvents] = useState([]);
+  const calendarRef = useRef(null);
   const { isOpen, openModal, closeModal } = useModal();
 
   const calendarsEvents = {
@@ -58,16 +49,16 @@ const Calendar: React.FC = () => {
     ]);
   }, []);
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
+  const handleDateSelect = (selectInfo) => {
     resetModalFields();
     setEventStartDate(selectInfo.startStr);
     setEventEndDate(selectInfo.endStr || selectInfo.startStr);
     openModal();
   };
 
-  const handleEventClick = (clickInfo: EventClickArg) => {
+  const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
-    setSelectedEvent(event as unknown as CalendarEvent);
+    setSelectedEvent(event);
     setEventTitle(event.title);
     setEventStartDate(event.start?.toISOString().split("T")[0] || "");
     setEventEndDate(event.end?.toISOString().split("T")[0] || "");
@@ -93,7 +84,7 @@ const Calendar: React.FC = () => {
       );
     } else {
       // Add new event
-      const newEvent: CalendarEvent = {
+      const newEvent = {
         id: Date.now().toString(),
         title: eventTitle,
         start: eventStartDate,
@@ -268,7 +259,7 @@ const Calendar: React.FC = () => {
   );
 };
 
-const renderEventContent = (eventInfo: any) => {
+const renderEventContent = (eventInfo) => {
   const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()}`;
   return (
     <div

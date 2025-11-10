@@ -8,23 +8,8 @@ import {
 
 import Badge from "../../ui/badge/Badge";
 
-interface Order {
-  id: number;
-  user: {
-    image: string;
-    name: string;
-    role: string;
-  };
-  projectName: string;
-  team: {
-    images: string[];
-  };
-  status: string;
-  budget: string;
-}
-
-// Define the table data using the interface
-const tableData: Order[] = [
+// Define the table data
+const tableData = [
   {
     id: 1,
     user: {

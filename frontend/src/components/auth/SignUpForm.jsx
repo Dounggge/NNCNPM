@@ -1,13 +1,59 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
+import { authAPI } from "../../services/api";
 
 export default function SignUpForm() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [formData, setFormData] = useState({
+    userName: '',
+    email: '',
+    password: '',
+    hoTen: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!isChecked) {
+      setError('Please agree to the Terms and Conditions');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await authAPI.register({
+        userName: formData.userName,
+        email: formData.email,
+        password: formData.password,
+        hoTen: formData.hoTen
+      });
+      
+      // Auto login after signup
+      const loginResponse = await authAPI.login({
+        email: formData.email,
+        password: formData.password
+      });
+      
+      localStorage.setItem('token', loginResponse.data.token);
+      localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Sign up failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
       <div className="w-full max-w-md mx-auto mb-5 sm:pt-10">
@@ -82,47 +128,51 @@ export default function SignUpForm() {
                 </span>
               </div>
             </div>
-            <form>
+
+            {error && (
+              <div className="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
               <div className="space-y-5">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  {/* <!-- First Name --> */}
-                  <div className="sm:col-span-1">
-                    <Label>
-                      First Name<span className="text-error-500">*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      id="fname"
-                      name="fname"
-                      placeholder="Enter your first name"
-                    />
-                  </div>
-                  {/* <!-- Last Name --> */}
-                  <div className="sm:col-span-1">
-                    <Label>
-                      Last Name<span className="text-error-500">*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      id="lname"
-                      name="lname"
-                      placeholder="Enter your last name"
-                    />
-                  </div>
+                <div>
+                  <Label>
+                    Họ và tên<span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    required
+                    value={formData.hoTen}
+                    onChange={(e) => setFormData({ ...formData, hoTen: e.target.value })}
+                    placeholder="Nguyễn Văn A"
+                  />
                 </div>
-                {/* <!-- Email --> */}
+                <div>
+                  <Label>
+                    Username<span className="text-error-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    required
+                    value={formData.userName}
+                    onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                    placeholder="nguyenvana"
+                  />
+                </div>
                 <div>
                   <Label>
                     Email<span className="text-error-500">*</span>
                   </Label>
                   <Input
                     type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="email@example.com"
                   />
                 </div>
-                {/* <!-- Password --> */}
                 <div>
                   <Label>
                     Password<span className="text-error-500">*</span>
@@ -131,6 +181,10 @@ export default function SignUpForm() {
                     <Input
                       placeholder="Enter your password"
                       type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -144,7 +198,6 @@ export default function SignUpForm() {
                     </span>
                   </div>
                 </div>
-                {/* <!-- Checkbox --> */}
                 <div className="flex items-center gap-3">
                   <Checkbox
                     className="w-5 h-5"
@@ -162,10 +215,13 @@ export default function SignUpForm() {
                     </span>
                   </p>
                 </div>
-                {/* <!-- Button --> */}
                 <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
-                    Sign Up
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Creating account...' : 'Sign Up'}
                   </button>
                 </div>
               </div>

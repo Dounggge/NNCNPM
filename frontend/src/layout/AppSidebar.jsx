@@ -18,68 +18,49 @@ import {
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 
-type NavItem = {
-  name: string;
-  icon: React.ReactNode;
-  path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
-};
-
-const navItems: NavItem[] = [
+const navItems = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    path: "/",
   },
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
+    name: "Quản lý Hộ Khẩu",
+    path: "/households",
   },
   {
-    name: "Forms",
     icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    name: "Quản lý Nhân Khẩu",
+    path: "/residents",
   },
   {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  },
-  {
-    name: "Pages",
-    icon: <PageIcon />,
+    icon: <CalenderIcon />,
+    name: "Tạm trú/Tạm vắng",
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
+      { name: "Tạm trú", path: "/temporary-residence", pro: false },
+      { name: "Tạm vắng", path: "/temporary-absence", pro: false },
     ],
+  },
+  {
+    icon: <TableIcon />,
+    name: "Báo cáo thống kê",
+    path: "/reports",
   },
 ];
 
-const othersItems: NavItem[] = [
+const othersItems = [
   {
     icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
+    name: "Biểu đồ",
+    path: "/charts",
   },
   {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
+    icon: <PageIcon />,
+    name: "Cài đặt",
     subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
+      { name: "Thông tin hệ thống", path: "/settings/system", pro: false },
+      { name: "Quản lý người dùng", path: "/settings/users", pro: false },
     ],
   },
   {
@@ -92,22 +73,16 @@ const othersItems: NavItem[] = [
   },
 ];
 
-const AppSidebar: React.FC = () => {
+const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
 
-  const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others";
-    index: number;
-  } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const [subMenuHeight, setSubMenuHeight] = useState({});
+  const subMenuRefs = useRef({});
 
-  // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
-    (path: string) => location.pathname === path,
+    (path) => location.pathname === path,
     [location.pathname]
   );
 
@@ -120,7 +95,7 @@ const AppSidebar: React.FC = () => {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
               setOpenSubmenu({
-                type: menuType as "main" | "others",
+                type: menuType,
                 index,
               });
               submenuMatched = true;
@@ -147,7 +122,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+  const handleSubmenuToggle = (index, menuType) => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
@@ -160,7 +135,7 @@ const AppSidebar: React.FC = () => {
     });
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
+  const renderMenuItems = (items, menuType) => (
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => (
         <li key={nav.name}>
@@ -343,7 +318,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "QUẢN LÝ"
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
@@ -359,7 +334,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "KHÁC"
                 ) : (
                   <HorizontaLDots />
                 )}

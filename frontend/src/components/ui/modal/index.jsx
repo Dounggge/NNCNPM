@@ -1,26 +1,17 @@
 import { useRef, useEffect } from "react";
 
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  className?: string;
-  children: React.ReactNode;
-  showCloseButton?: boolean; // New prop to control close button visibility
-  isFullscreen?: boolean; // Default to false for backwards compatibility
-}
-
-export const Modal: React.FC<ModalProps> = ({
+export const Modal = ({
   isOpen,
   onClose,
   children,
   className,
-  showCloseButton = true, // Default to true for backwards compatibility
+  showCloseButton = true,
   isFullscreen = false,
 }) => {
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef(null);
 
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleEscape = (event) => {
       if (event.key === "Escape") {
         onClose();
       }

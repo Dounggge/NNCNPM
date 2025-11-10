@@ -1,10 +1,4 @@
-type AspectRatioVideoProps = {
-  videoUrl: string; // URL of the video
-  aspectRatio?: string; // Aspect ratio in the format "width/height", default is "16/9"
-  title?: string; // Video title, default is "Embedded Video"
-};
-
-const AspectRatioVideo: React.FC<AspectRatioVideoProps> = ({
+const AspectRatioVideo = ({
   videoUrl,
   aspectRatio = "video", // Default aspect ratio
   title = "Embedded Video",
@@ -14,10 +8,9 @@ const AspectRatioVideo: React.FC<AspectRatioVideoProps> = ({
       <iframe
         src={videoUrl}
         title={title}
-        frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        className="w-full h-full"
+        className="w-full h-full border-0"
       ></iframe>
     </div>
   );
