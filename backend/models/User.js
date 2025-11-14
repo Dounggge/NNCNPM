@@ -23,7 +23,8 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true, // Allow null
     lowercase: true,
-    trim: true
+    trim: true,
+    default: null
   },
   canCuocCongDan: { // Thêm field này để link với NhanKhau
     type: String,

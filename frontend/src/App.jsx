@@ -3,7 +3,7 @@ import AppLayout from "./layout/AppLayout";
 import Home from "./pages/Dashboard/Home";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
-import Landing from "./pages/AuthPages/Landing"; // ← Import Landing
+import Landing from "./pages/AuthPages/Landing"; 
 import { ThemeProvider } from "./context/ThemeContext";
 import { AppWrapper } from "./components/common/PageMeta";
 

@@ -3,10 +3,10 @@ const router = express.Router();
 const NhanKhau = require('../models/NhanKhau');
 const HoKhau = require('../models/HoKhau');
 const PhieuThu = require('../models/PhieuThu');
-const { authenticate } = require('../middleware/auth'); // ← SỬA: authMiddleware → authenticate
+const { authenticate } = require('../middleware/auth'); 
 
 // Thống kê tổng quan
-router.get('/stats', authenticate, async (req, res) => { // ← SỬA
+router.get('/stats', authenticate, async (req, res) => { 
   try {
     const tongHoKhau = await HoKhau.countDocuments();
     const tongNhanKhau = await NhanKhau.countDocuments();
