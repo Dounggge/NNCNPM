@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Assume these icons are imported from an icon library
 import {
@@ -22,30 +23,46 @@ const navItems = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    path: "/",
+    path: "/dashboard",
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Admin Dashboard",
+    path: "/dashboard/admin",
+    adminOnly: true, // ← flag để check quyền admin
   },
   {
     icon: <UserCircleIcon />,
     name: "Quản lý Hộ Khẩu",
-    path: "/households",
+    path: "/dashboard/hokhau",
   },
   {
     icon: <ListIcon />,
     name: "Quản lý Nhân Khẩu",
-    path: "/residents",
+    path: "/dashboard/nhankhau",
   },
   {
     icon: <CalenderIcon />,
     name: "Tạm trú/Tạm vắng",
     subItems: [
-      { name: "Tạm trú", path: "/temporary-residence", pro: false },
-      { name: "Tạm vắng", path: "/temporary-absence", pro: false },
+      { name: "Tổng quan", path: "/dashboard/tamtru-tamvang", pro: false }, 
+      { name: "Danh sách Tạm trú", path: "/dashboard/tamtru", pro: false }, 
+      { name: "Danh sách Tạm vắng", path: "/dashboard/tamvang", pro: false }, 
     ],
   },
   {
     icon: <TableIcon />,
     name: "Báo cáo thống kê",
-    path: "/reports",
+    path: "/dashboard/reports",
+  },
+  {
+    icon: <TableIcon />,
+    name: "Quản lý Thu phí",
+    subItems: [
+      { name: "Khoản thu", path: "/dashboard/khoanthu", pro: false },
+      { name: "Phiếu thu", path: "/dashboard/phieuthu", pro: false },
+      { name: "Báo cáo", path: "/dashboard/reports", pro: true },
+    ],
   },
 ];
 
@@ -75,6 +92,7 @@ const othersItems = [
 
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isAdmin } = useAuth();
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -137,7 +155,9 @@ const AppSidebar = () => {
 
   const renderMenuItems = (items, menuType) => (
     <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => (
+      {items
+      .filter(nav => !nav.adminOnly || isAdmin)
+      .map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button

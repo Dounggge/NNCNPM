@@ -2,20 +2,29 @@ const express = require('express');
 const router = express.Router();
 const HoKhau = require('../models/HoKhau');
 const NhanKhau = require('../models/NhanKhau');
+const { authenticate, checkPermission } = require('../middleware/auth');
 
-// Get all với populate
-router.get('/', async (req, res) => {
+// GET - Danh sách hộ khẩu
+router.get('/', authenticate, checkPermission('hokhau:read'), async (req, res) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, search = '' } = req.query;
     
     let query = {};
+
+    // Chủ hộ chỉ xem được hộ của mình
+    if (req.user.vaiTro === 'chu_ho' && req.user.nhanKhauId?.hoKhauId) {
+      query._id = req.user.nhanKhauId.hoKhauId;
+    }
+
     if (search) {
-      query.soHoKhau = { $regex: search, $options: 'i' };
+      query.$or = [
+        { soHoKhau: { $regex: search, $options: 'i' } },
+        { diaChi: { $regex: search, $options: 'i' } }
+      ];
     }
 
     const hoKhaus = await HoKhau.find(query)
-      .populate('chuHo', 'hoTen cmnd')
-      .populate('thanhVien', 'hoTen cmnd quanHeVoiChuHo')
+      .populate('chuHoId')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
@@ -24,128 +33,88 @@ router.get('/', async (req, res) => {
 
     res.json({
       data: hoKhaus,
-      total,
-      page: parseInt(page),
-      pages: Math.ceil(total / limit)
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
-// Get by ID
-router.get('/:id', async (req, res) => {
+// GET - Chi tiết hộ khẩu với danh sách thành viên
+router.get('/:id', authenticate, checkPermission('hokhau:read'), async (req, res) => {
   try {
-    const hoKhau = await HoKhau.findById(req.params.id)
-      .populate('chuHo')
-      .populate('thanhVien');
-      
+    const hoKhau = await HoKhau.findById(req.params.id).populate('chuHoId');
+    
     if (!hoKhau) {
       return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
     }
+
+    // Lấy danh sách thành viên
+    const thanhVien = await NhanKhau.find({ hoKhauId: hoKhau._id });
+
+    res.json({
+      ...hoKhau.toObject(),
+      thanhVien
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+});
+
+// POST - Tạo hộ khẩu mới
+router.post('/', authenticate, checkPermission('hokhau:create'), async (req, res) => {
+  try {
+    const hoKhau = new HoKhau(req.body);
+    await hoKhau.save();
+    
+    console.log('✅ Created HoKhau:', hoKhau._id);
+    res.status(201).json(hoKhau);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+});
+
+// PUT - Cập nhật hộ khẩu
+router.put('/:id', authenticate, checkPermission('hokhau:update'), async (req, res) => {
+  try {
+    const hoKhau = await HoKhau.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!hoKhau) {
+      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
+    }
+
     res.json(hoKhau);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
-// Create
-router.post('/', async (req, res) => {
-  try {
-    const { chuHo, thanhVien } = req.body;
-    
-    // Verify chủ hộ exists
-    const chuHoExists = await NhanKhau.findById(chuHo);
-    if (!chuHoExists) {
-      return res.status(400).json({ message: 'Chủ hộ không tồn tại' });
-    }
-
-    const hoKhau = new HoKhau({ chuHo, thanhVien: thanhVien || [] });
-    await hoKhau.save();
-    
-    const populated = await HoKhau.findById(hoKhau._id)
-      .populate('chuHo')
-      .populate('thanhVien');
-    
-    res.status(201).json({ message: 'Thêm hộ khẩu thành công', data: populated });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// Add thành viên vào hộ khẩu
-router.post('/:id/thanh-vien', async (req, res) => {
-  try {
-    const { nhanKhauId } = req.body;
-    
-    const hoKhau = await HoKhau.findById(req.params.id);
-    if (!hoKhau) {
-      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
-    }
-
-    if (hoKhau.thanhVien.includes(nhanKhauId)) {
-      return res.status(400).json({ message: 'Nhân khẩu đã có trong hộ' });
-    }
-
-    hoKhau.thanhVien.push(nhanKhauId);
-    await hoKhau.save();
-
-    const updated = await HoKhau.findById(hoKhau._id)
-      .populate('chuHo')
-      .populate('thanhVien');
-
-    res.json({ message: 'Thêm thành viên thành công', data: updated });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// Remove thành viên
-router.delete('/:id/thanh-vien/:nhanKhauId', async (req, res) => {
-  try {
-    const hoKhau = await HoKhau.findById(req.params.id);
-    if (!hoKhau) {
-      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
-    }
-
-    hoKhau.thanhVien = hoKhau.thanhVien.filter(
-      tv => tv.toString() !== req.params.nhanKhauId
-    );
-    await hoKhau.save();
-
-    res.json({ message: 'Xóa thành viên thành công' });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// Update
-router.put('/:id', async (req, res) => {
-  try {
-    const hoKhau = await HoKhau.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('chuHo').populate('thanhVien');
-    
-    if (!hoKhau) {
-      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
-    }
-    
-    res.json({ message: 'Cập nhật thành công', data: hoKhau });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// Delete
-router.delete('/:id', async (req, res) => {
+// DELETE - Xóa hộ khẩu
+router.delete('/:id', authenticate, checkPermission('hokhau:delete'), async (req, res) => {
   try {
     const hoKhau = await HoKhau.findByIdAndDelete(req.params.id);
+    
     if (!hoKhau) {
       return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
     }
-    res.json({ message: 'Xóa thành công' });
+
+    // Cập nhật nhân khẩu trong hộ
+    await NhanKhau.updateMany(
+      { hoKhauId: req.params.id },
+      { $unset: { hoKhauId: 1 } }
+    );
+
+    console.log('✅ Deleted HoKhau:', req.params.id);
+    res.status(204).end();
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }

@@ -1,15 +1,13 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor thêm token vào mọi request
+// Interceptor: Tự động thêm token vào mọi request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,30 +16,29 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Interceptor xử lý lỗi 401
+// Interceptor: Xử lý lỗi 401 (token hết hạn)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
       window.location.href = '/signin';
     }
     return Promise.reject(error);
   }
 );
 
-// Auth API
-export const authAPI = {
-  login: (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register', data),
-  getMe: () => api.get('/auth/me'),
+// ========== DASHBOARD ==========
+export const dashboardAPI = {
+  getStats: () => api.get('/dashboard/stats'),
 };
 
-// Nhân Khẩu API
+// ========== NHÂN KHẨU ==========
 export const nhanKhauAPI = {
   getAll: (params) => api.get('/nhankhau', { params }),
   getById: (id) => api.get(`/nhankhau/${id}`),
@@ -50,16 +47,40 @@ export const nhanKhauAPI = {
   delete: (id) => api.delete(`/nhankhau/${id}`),
 };
 
-// Hộ Khẩu API
+// ========== HỘ KHẨU ==========
 export const hoKhauAPI = {
   getAll: (params) => api.get('/hokhau', { params }),
   getById: (id) => api.get(`/hokhau/${id}`),
   create: (data) => api.post('/hokhau', data),
   update: (id, data) => api.put(`/hokhau/${id}`, data),
   delete: (id) => api.delete(`/hokhau/${id}`),
+  addMember: (id, data) => api.post(`/hokhau/${id}/members`, data),
+  removeMember: (id, memberId) => api.delete(`/hokhau/${id}/members/${memberId}`),
 };
 
-// Khoản Thu API
+// ========== TẠM TRÚ ==========
+export const tamTruAPI = {
+  getAll: (params) => api.get('/tamtru', { params }),
+  getById: (id) => api.get(`/tamtru/${id}`),
+  create: (data) => api.post('/tamtru', data),
+  update: (id, data) => api.put(`/tamtru/${id}`, data),
+  delete: (id) => api.delete(`/tamtru/${id}`),
+  approve: (id) => api.put(`/tamtru/${id}/approve`),
+  reject: (id, data) => api.put(`/tamtru/${id}/reject`, data),
+};
+
+// ========== TẠM VẮNG ==========
+export const tamVangAPI = {
+  getAll: (params) => api.get('/tamvang', { params }),
+  getById: (id) => api.get(`/tamvang/${id}`),
+  create: (data) => api.post('/tamvang', data),
+  update: (id, data) => api.put(`/tamvang/${id}`, data),
+  delete: (id) => api.delete(`/tamvang/${id}`),
+  approve: (id) => api.put(`/tamvang/${id}/approve`),
+  reject: (id, data) => api.put(`/tamvang/${id}/reject`, data),
+};
+
+// ========== KHOẢN THU ==========
 export const khoanThuAPI = {
   getAll: (params) => api.get('/khoanthu', { params }),
   getById: (id) => api.get(`/khoanthu/${id}`),
@@ -68,19 +89,32 @@ export const khoanThuAPI = {
   delete: (id) => api.delete(`/khoanthu/${id}`),
 };
 
-// Phiếu Thu API
+// ========== PHIẾU THU ==========
 export const phieuThuAPI = {
   getAll: (params) => api.get('/phieuthu', { params }),
   getById: (id) => api.get(`/phieuthu/${id}`),
   create: (data) => api.post('/phieuthu', data),
   update: (id, data) => api.put(`/phieuthu/${id}`, data),
   delete: (id) => api.delete(`/phieuthu/${id}`),
+  markAsPaid: (id, data) => api.put(`/phieuthu/${id}/paid`, data),
 };
 
-// Dashboard API
-export const dashboardAPI = {
-  getStats: () => api.get('/dashboard/stats'),
-  getGrowthChart: () => api.get('/dashboard/growth-chart'),
+// ========== USER ========== ← THÊM MỚI
+export const userAPI = {
+  getAllUsers: () => api.get('/users'),
+  getUserById: (id) => api.get(`/users/${id}`),
+  updateRole: (userId, data) => api.put(`/users/${userId}/role`, data),
+  updateStatus: (userId, data) => api.put(`/users/${userId}/status`, data),
+  linkProfile: (userId, data) => api.put(`/users/${userId}/link-profile`, data),
+  deleteUser: (userId) => api.delete(`/users/${userId}`),
+};
+
+// ========== AUTH ==========
+export const authAPI = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  getMe: () => api.get('/auth/me'),
+  logout: () => api.post('/auth/logout'),
 };
 
 export default api;

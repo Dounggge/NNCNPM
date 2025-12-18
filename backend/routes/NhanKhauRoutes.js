@@ -1,24 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const NhanKhau = require('../models/NhanKhau');
+const { authenticate, authorize, checkPermission } = require('../middleware/auth');
 
-// Get all
-router.get('/', async (req, res) => {
+// GET - Lấy danh sách nhân khẩu
+// Ai cũng xem được (đã đăng nhập)
+router.get('/', authenticate, checkPermission('nhankhau:read'), async (req, res) => {
   try {
-    const { search, gioiTinh, page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, search = '' } = req.query;
     
     let query = {};
+    
+    // Nếu là dân cư thường, chỉ xem được thông tin của mình
+    if (req.user.vaiTro === 'dan_cu') {
+      query._id = req.user.nhanKhauId;
+    }
+    
+    // Nếu là chủ hộ, xem được thành viên trong hộ
+    if (req.user.vaiTro === 'chu_ho' && req.user.nhanKhauId?.hoKhauId) {
+      query.hoKhauId = req.user.nhanKhauId.hoKhauId;
+    }
+
+    // Search
     if (search) {
       query.$or = [
         { hoTen: { $regex: search, $options: 'i' } },
-        { cmnd: { $regex: search, $options: 'i' } }
+        { canCuocCongDan: { $regex: search, $options: 'i' } }
       ];
-    }
-    if (gioiTinh) {
-      query.gioiTinh = gioiTinh;
     }
 
     const nhanKhaus = await NhanKhau.find(query)
+      .populate('hoKhauId')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
@@ -27,44 +39,57 @@ router.get('/', async (req, res) => {
 
     res.json({
       data: nhanKhaus,
-      total,
-      page: parseInt(page),
-      pages: Math.ceil(total / limit)
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
-// Get by ID
-router.get('/:id', async (req, res) => {
+// GET - Chi tiết nhân khẩu
+router.get('/:id', authenticate, checkPermission('nhankhau:read'), async (req, res) => {
   try {
-    const nhanKhau = await NhanKhau.findById(req.params.id);
+    const nhanKhau = await NhanKhau.findById(req.params.id).populate('hoKhauId');
+    
     if (!nhanKhau) {
       return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
     }
+
+    // Kiểm tra quyền xem
+    if (req.user.vaiTro === 'dan_cu') {
+      if (nhanKhau._id.toString() !== req.user.nhanKhauId?.toString()) {
+        return res.status(403).json({ message: 'Bạn không có quyền xem thông tin này' });
+      }
+    }
+
     res.json(nhanKhau);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
-// Create
-router.post('/', async (req, res) => {
+// POST - Thêm nhân khẩu mới
+// Chỉ admin, tổ trưởng
+router.post('/', authenticate, checkPermission('nhankhau:create'), async (req, res) => {
   try {
     const nhanKhau = new NhanKhau(req.body);
     await nhanKhau.save();
-    res.status(201).json({ message: 'Thêm nhân khẩu thành công', data: nhanKhau });
+    
+    console.log('✅ Created NhanKhau:', nhanKhau._id);
+    res.status(201).json(nhanKhau);
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'CMND đã tồn tại' });
-    }
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
-// Update
-router.put('/:id', async (req, res) => {
+// PUT - Cập nhật nhân khẩu
+// Admin, tổ trưởng
+router.put('/:id', authenticate, checkPermission('nhankhau:update'), async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findByIdAndUpdate(
       req.params.id,
@@ -75,21 +100,25 @@ router.put('/:id', async (req, res) => {
     if (!nhanKhau) {
       return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
     }
-    
-    res.json({ message: 'Cập nhật thành công', data: nhanKhau });
+
+    res.json(nhanKhau);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 
-// Delete
-router.delete('/:id', async (req, res) => {
+// DELETE - Xóa nhân khẩu
+// Chỉ admin
+router.delete('/:id', authenticate, checkPermission('nhankhau:delete'), async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findByIdAndDelete(req.params.id);
+    
     if (!nhanKhau) {
       return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
     }
-    res.json({ message: 'Xóa thành công' });
+
+    console.log('✅ Deleted NhanKhau:', req.params.id);
+    res.status(204).end();
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }

@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const NhanKhau = require('../models/NhanKhau');
+const { authenticate } = require('../middleware/auth');
 
 // Register - Dùng CCCD hoặc tự đặt username
 router.post('/register', async (req, res) => {
@@ -167,6 +168,33 @@ router.post('/login', async (req, res) => {
       message: 'Lỗi server', 
       error: error.message 
     });
+  }
+});
+
+router.get('/me', authenticate, async (req, res) => {
+  try {
+    const permissions = {
+      admin: ['all'],
+      to_truong: ['nhankhau:*', 'hokhau:*', 'dashboard:read'],
+      ke_toan: ['thuhi:*', 'hokhau:read', 'nhankhau:read', 'dashboard:read'],
+      chu_ho: ['hokhau:read', 'hokhau:update', 'nhankhau:read'],
+      dan_cu: ['nhankhau:read']
+    };
+
+    res.json({
+      user: {
+        id: req.user._id,
+        userName: req.user.userName,
+        hoTen: req.user.hoTen,
+        canCuocCongDan: req.user.canCuocCongDan,
+        vaiTro: req.user.vaiTro,
+        email: req.user.email,
+        nhanKhau: req.user.nhanKhauId
+      },
+      permissions: permissions[req.user.vaiTro] || []
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 });
 

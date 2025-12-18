@@ -1,35 +1,36 @@
-require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-const authRouter = require('./routes/AuthRoutes');
-const nhanKhauRouter = require('./routes/NhanKhauRoutes');
-const hoKhauRouter = require('./routes/HoKhauRoutes');    
-const khoanThuRouter = require('./routes/KhoanThuRoutes');  
-const phieuThuRouter = require('./routes/PhieuThuRoutes');
-const dashboardRouter = require('./routes/DashboardRoutes');  
-
-// MongoDB connection
-const MONGO = process.env.MONGO_URI || 'mongodb://localhost:27017/quanlydancu';
-mongoose.connect(MONGO)
+// Connect MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quanlydancu')
   .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB connect error:', err.message));
+  .catch(err => console.error('❌ MongoDB error:', err));
 
 // Routes
-app.use('/api/auth', authRouter);
-app.use('/api/nhankhau', nhanKhauRouter);
-app.use('/api/hokhau', hoKhauRouter);
-app.use('/api/khoanthu', khoanThuRouter);
-app.use('/api/phieuthu', phieuThuRouter);
-app.use('/api/dashboard', dashboardRouter);
+const authRoutes = require('./routes/AuthRoutes');
+const dashboardRoutes = require('./routes/DashboardRoutes');
+const nhanKhauRoutes = require('./routes/NhanKhauRoutes');
+const hoKhauRoutes = require('./routes/HoKhauRoutes');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/nhankhau', nhanKhauRoutes);
+app.use('/api/hokhau', hoKhauRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
+});
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Backend running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Backend running on http://localhost:${PORT}`);
+});
