@@ -28,11 +28,12 @@ import Landing from "./pages/AuthPages/Landing";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { AppWrapper } from "./components/common/PageMeta";
+import RequireProfile from "./components/common/RequireProfile";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
   if (!token) {
-    return <Navigate to="/signin" replace />; // ← SỬA: redirect về signin thay vì landing
+    return <Navigate to="/signin" replace />;
   }
   return children;
 }
@@ -49,7 +50,7 @@ function App() {
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               
-              {/* ROOT - Redirect dựa vào token */}
+              {/* ROOT */}
               <Route 
                 path="/" 
                 element={
@@ -61,7 +62,7 @@ function App() {
                 } 
               />
               
-              {/* DASHBOARD ROUTES - Protected */}
+              {/* DASHBOARD ROUTES */}
               <Route 
                 path="/dashboard" 
                 element={
@@ -70,43 +71,44 @@ function App() {
                   </ProtectedRoute>
                 }
               >
+                {/* ← TRANG CHỦ: KHÔNG CẦN RequireProfile, CHỈ CẦN TOKEN */}
                 <Route index element={<Home />} />
+                
+                {/* ← PROFILE SETUP: KHÔNG CẦN RequireProfile */}
+                <Route path="profile-setup" element={<ProfileSetupForm />} />
+                
+                {/* ← ADMIN DASHBOARD: CHỈ ADMIN MỚI VÀO ĐƯỢC (KIỂM TRA BÊN TRONG COMPONENT) */}
                 <Route path="admin" element={<AdminDashboard />} />
                 
-                {/* NHÂN KHẨU */}
-                <Route path="nhankhau" element={<NhanKhauList />} />
-                <Route path="nhankhau/create" element={<NhanKhauForm />} />
-                <Route path="nhankhau/:id" element={<NhanKhauDetail />} />
-                <Route path="nhankhau/:id/edit" element={<NhanKhauForm />} />
+                {/* ← CÁC TRANG QUẢN LÝ: BẮT BUỘC PHẢI CÓ PROFILE */}
+                <Route path="nhankhau" element={<RequireProfile><NhanKhauList /></RequireProfile>} />
+                <Route path="nhankhau/create" element={<RequireProfile><NhanKhauForm /></RequireProfile>} />
+                <Route path="nhankhau/:id" element={<RequireProfile><NhanKhauDetail /></RequireProfile>} />
+                <Route path="nhankhau/:id/edit" element={<RequireProfile><NhanKhauForm /></RequireProfile>} />
                 
-                {/* HỘ KHẨU */}
-                <Route path="hokhau" element={<HoKhauList />} />
-                <Route path="hokhau/create" element={<HoKhauForm />} />
-                <Route path="hokhau/:id" element={<HoKhauDetail />} />
-                <Route path="hokhau/:id/edit" element={<HoKhauForm />} />
+                <Route path="hokhau" element={<RequireProfile><HoKhauList /></RequireProfile>} />
+                <Route path="hokhau/create" element={<RequireProfile><HoKhauForm /></RequireProfile>} />
+                <Route path="hokhau/:id" element={<RequireProfile><HoKhauDetail /></RequireProfile>} />
+                <Route path="hokhau/:id/edit" element={<RequireProfile><HoKhauForm /></RequireProfile>} />
 
-                {/* TẠM TRÚ/TẠM VẮNG */}
-                <Route path="tamtru-tamvang" element={<TamTruTamVang />} />
-                <Route path="tamtru" element={<TamTruList />} />
-                <Route path="tamtru/create" element={<TamTruForm />} />
-                <Route path="tamvang" element={<TamVangList />} />
-                <Route path="tamvang/create" element={<TamVangForm />} />
-
-                {/* KHOẢN THU/PHIẾU THU */}
-                <Route path="khoanthu" element={<KhoanThuList />} />
-                <Route path="khoanthu/create" element={<KhoanThuForm />} />
-                <Route path="khoanthu/:id/edit" element={<KhoanThuForm />} />
+                <Route path="tamtru-tamvang" element={<RequireProfile><TamTruTamVang /></RequireProfile>} />
+                <Route path="tamtru" element={<RequireProfile><TamTruList /></RequireProfile>} />
+                <Route path="tamtru/create" element={<RequireProfile><TamTruForm /></RequireProfile>} />
+                <Route path="tamvang" element={<RequireProfile><TamVangList /></RequireProfile>} />
+                <Route path="tamvang/create" element={<RequireProfile><TamVangForm /></RequireProfile>} />
                 
-                <Route path="phieuthu" element={<PhieuThuList />} />
-                <Route path="phieuthu/create" element={<PhieuThuForm />} />
+                <Route path="khoanthu" element={<RequireProfile><KhoanThuList /></RequireProfile>} />
+                <Route path="khoanthu/create" element={<RequireProfile><KhoanThuForm /></RequireProfile>} />
+                <Route path="khoanthu/:id/edit" element={<RequireProfile><KhoanThuForm /></RequireProfile>} />
+                
+                <Route path="phieuthu" element={<RequireProfile><PhieuThuList /></RequireProfile>} />
+                <Route path="phieuthu/create" element={<RequireProfile><PhieuThuForm /></RequireProfile>} />
 
-                {/* NGƯỜI DÙNG */}
-                <Route path="users" element={<UserList />} />
-                <Route path="users/:userId/profile-setup" element={<ProfileSetupForm />} />
-                <Route path="profile-setup" element={<ProfileSetupForm />} />
+                <Route path="users" element={<RequireProfile><UserList /></RequireProfile>} />
+                <Route path="users/:userId/profile-setup" element={<RequireProfile><ProfileSetupForm /></RequireProfile>} />
               </Route>
 
-              {/* 404 - Catch all */}
+              {/* 404 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

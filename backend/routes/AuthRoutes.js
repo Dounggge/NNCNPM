@@ -171,6 +171,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// GET /api/auth/me
 router.get('/me', authenticate, async (req, res) => {
   try {
     const permissions = {
@@ -182,19 +183,72 @@ router.get('/me', authenticate, async (req, res) => {
     };
 
     res.json({
-      user: {
+      success: true, // ← THÊM success: true
+      data: {        // ← WRAP trong data
         id: req.user._id,
         userName: req.user.userName,
         hoTen: req.user.hoTen,
         canCuocCongDan: req.user.canCuocCongDan,
         vaiTro: req.user.vaiTro,
         email: req.user.email,
-        nhanKhau: req.user.nhanKhauId
-      },
-      permissions: permissions[req.user.vaiTro] || []
+        nhanKhauId: req.user.nhanKhauId, // ← ĐỔI TÊN từ nhanKhau → nhanKhauId
+        permissions: permissions[req.user.vaiTro] || []
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Lỗi server', 
+      error: error.message 
+    });
+  }
+});
+
+// PUT /api/auth/link-profile - Liên kết nhân khẩu với user ← THÊM MỚI
+router.put('/link-profile', authenticate, async (req, res) => {
+  try {
+    const { nhanKhauId } = req.body;
+    
+    if (!nhanKhauId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu nhanKhauId'
+      });
+    }
+    
+    // Kiểm tra NhanKhau có tồn tại không
+    const nhanKhau = await NhanKhau.findById(nhanKhauId);
+    if (!nhanKhau) {
+      return res.status(404).json({
+        success: false,
+        message: 'Nhân khẩu không tồn tại'
+      });
+    }
+    
+    // Cập nhật User
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { nhanKhauId },
+      { new: true, runValidators: true }
+    )
+      .select('-password')
+      .populate('nhanKhauId', 'hoTen canCuocCongDan');
+    
+    // Cập nhật NhanKhau với userId
+    nhanKhau.userId = user._id;
+    await nhanKhau.save();
+    
+    res.json({
+      success: true,
+      message: 'Liên kết thành công',
+      data: user
+    });
+  } catch (error) {
+    console.error('❌ Link profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 
