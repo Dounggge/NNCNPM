@@ -114,6 +114,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   getMe: () => api.get('/auth/me'),
+  linkProfile: (nhanKhauId) => api.put('/auth/link-profile', { nhanKhauId }),
   logout: () => api.post('/auth/logout'),
 };
 
