@@ -14,16 +14,27 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quanlydan
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB error:', err));
 
-// Routes
+// ========== IMPORT ROUTES ========== ← THÊM ĐẦY ĐỦ
 const authRoutes = require('./routes/AuthRoutes');
 const dashboardRoutes = require('./routes/DashboardRoutes');
 const nhanKhauRoutes = require('./routes/NhanKhauRoutes');
 const hoKhauRoutes = require('./routes/HoKhauRoutes');
+const tamTruRoutes = require('./routes/TamTruRoutes');      
+const tamVangRoutes = require('./routes/TamVangRoutes');    
+const khoanThuRoutes = require('./routes/KhoanThuRoutes');  
+const phieuThuRoutes = require('./routes/PhieuThuRoutes');  
+const userRoutes = require('./routes/UserRoutes');          
 
+// ========== REGISTER ROUTES ==========
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/nhankhau', nhanKhauRoutes);
 app.use('/api/hokhau', hoKhauRoutes);
+app.use('/api/tamtru', tamTruRoutes);
+app.use('/api/tamvang', tamVangRoutes);
+app.use('/api/khoanthu', khoanThuRoutes);
+app.use('/api/phieuthu', phieuThuRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

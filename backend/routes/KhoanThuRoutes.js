@@ -1,62 +1,45 @@
 const express = require('express');
 const router = express.Router();
+const { protect, authorize } = require('../middleware/authMiddleware'); 
 const KhoanThu = require('../models/KhoanThu');
 
-// Get all
-router.get('/', async (req, res) => {
+// GET /api/khoanthu - Lấy danh sách khoản thu
+router.get('/', protect, async (req, res) => {
   try {
-    const { loaiThu, page = 1, limit = 10 } = req.query;
+    const khoanThus = await KhoanThu.find().sort('-createdAt');
+    res.json({ success: true, data: khoanThus });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET /api/khoanthu/:id - Lấy chi tiết khoản thu
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const khoanThu = await KhoanThu.findById(req.params.id);
     
-    let query = {};
-    if (loaiThu) {
-      query.loaiThu = loaiThu;
-    }
-
-    const khoanThus = await KhoanThu.find(query)
-      .populate('nguoiTao', 'hoTen userName')
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .sort({ ngayBatDau: -1 });
-
-    const total = await KhoanThu.countDocuments(query);
-
-    res.json({
-      data: khoanThus,
-      total,
-      page: parseInt(page),
-      pages: Math.ceil(total / limit)
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// Get by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const khoanThu = await KhoanThu.findById(req.params.id).populate('nguoiTao');
     if (!khoanThu) {
-      return res.status(404).json({ message: 'Không tìm thấy khoản thu' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy khoản thu' });
     }
-    res.json(khoanThu);
+    
+    res.json({ success: true, data: khoanThu });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Create
-router.post('/', async (req, res) => {
+// POST /api/khoanthu - Tạo khoản thu
+router.post('/', protect, authorize('admin', 'to_truong'), async (req, res) => {
   try {
-    const khoanThu = new KhoanThu(req.body);
-    await khoanThu.save();
-    res.status(201).json({ message: 'Thêm khoản thu thành công', data: khoanThu });
+    const khoanThu = await KhoanThu.create(req.body);
+    res.status(201).json({ success: true, data: khoanThu });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-// Update
-router.put('/:id', async (req, res) => {
+// PUT /api/khoanthu/:id - Cập nhật khoản thu
+router.put('/:id', protect, authorize('admin', 'to_truong'), async (req, res) => {
   try {
     const khoanThu = await KhoanThu.findByIdAndUpdate(
       req.params.id,
@@ -65,25 +48,27 @@ router.put('/:id', async (req, res) => {
     );
     
     if (!khoanThu) {
-      return res.status(404).json({ message: 'Không tìm thấy khoản thu' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy khoản thu' });
     }
     
-    res.json({ message: 'Cập nhật thành công', data: khoanThu });
+    res.json({ success: true, data: khoanThu });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-// Delete
-router.delete('/:id', async (req, res) => {
+// DELETE /api/khoanthu/:id - Xóa khoản thu
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const khoanThu = await KhoanThu.findByIdAndDelete(req.params.id);
+    
     if (!khoanThu) {
-      return res.status(404).json({ message: 'Không tìm thấy khoản thu' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy khoản thu' });
     }
-    res.json({ message: 'Xóa thành công' });
+    
+    res.json({ success: true, message: 'Đã xóa khoản thu' });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
