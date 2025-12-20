@@ -6,7 +6,7 @@ const User = require('../models/User');
 const NhanKhau = require('../models/NhanKhau');
 const { authenticate } = require('../middleware/auth');
 
-// Register - Dùng CCCD hoặc tự đặt username
+// ========== REGISTER: CHỈ TẠO USER, KHÔNG TỰ ĐỘNG TẠO NHANKHAU ==========
 router.post('/register', async (req, res) => {
   try {
     console.log('📝 Register request:', req.body);
@@ -26,20 +26,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Check if CCCD exists in NhanKhau
-    let nhanKhau = await NhanKhau.findOne({ canCuocCongDan });
-    
-    // Nếu chưa có trong NhanKhau, tạo mới (optional - tùy logic của bạn)
-    if (!nhanKhau) {
-      nhanKhau = await NhanKhau.create({
-        canCuocCongDan,
-        hoTen,
-        ngaySinh: new Date(), // Placeholder
-        gioiTinh: 'Khac'
-      });
-    }
-
-    // Check if User already exists
+    // ← KIỂM TRA USER ĐÃ TỒN TẠI CHƯA
     const existingUser = await User.findOne({ 
       $or: [
         { canCuocCongDan },
@@ -53,37 +40,45 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Determine role
-    let vaiTro = 'dan_cu';
-    if (nhanKhau.quanHeVoiChuHo === 'Chủ hộ') {
+    // ← KIỂM TRA CCCD ĐÃ CÓ TRONG NHANKHAU CHƯA (OPTIONAL)
+    let nhanKhau = await NhanKhau.findOne({ canCuocCongDan });
+    
+    // ← XÁC ĐỊNH VAI TRÒ
+    let vaiTro = 'dan_cu'; // Mặc định
+    if (nhanKhau?.quanHeVoiChuHo === 'Chủ hộ') {
       vaiTro = 'chu_ho';
     }
 
-    // Create User account
+    // ← TẠO USER (KHÔNG TẠO NHANKHAU NẾU CHƯA CÓ)
     const newUser = new User({
-      userName: userName || canCuocCongDan, // Use custom username or CCCD
+      userName: userName || canCuocCongDan,
       password: password,
       hoTen,
       canCuocCongDan,
-      nhanKhauId: nhanKhau._id,
+      nhanKhauId: nhanKhau?._id || null, // ← NULL nếu chưa có NhanKhau
       vaiTro
     });
 
     await newUser.save();
 
-    // Update NhanKhau with userId
-    nhanKhau.userId = newUser._id;
-    await nhanKhau.save();
+    // ← NẾU ĐÃ CÓ NHANKHAU, GẮN userId VÀO
+    if (nhanKhau) {
+      nhanKhau.userId = newUser._id;
+      await nhanKhau.save();
+    }
 
     console.log('✅ User created:', newUser._id);
 
     res.status(201).json({ 
-      message: 'Đăng ký thành công',
+      message: nhanKhau 
+        ? 'Đăng ký thành công! Tài khoản đã được liên kết với thông tin nhân khẩu.' 
+        : 'Đăng ký thành công! Vui lòng khai báo thông tin cá nhân.',
       user: {
         id: newUser._id,
         userName: newUser.userName,
         hoTen: newUser.hoTen,
-        vaiTro: newUser.vaiTro
+        vaiTro: newUser.vaiTro,
+        hasProfile: !!nhanKhau
       }
     });
   } catch (error) {
@@ -183,15 +178,15 @@ router.get('/me', authenticate, async (req, res) => {
     };
 
     res.json({
-      success: true, // ← THÊM success: true
-      data: {        // ← WRAP trong data
+      success: true,
+      data: {
         id: req.user._id,
         userName: req.user.userName,
         hoTen: req.user.hoTen,
         canCuocCongDan: req.user.canCuocCongDan,
         vaiTro: req.user.vaiTro,
         email: req.user.email,
-        nhanKhauId: req.user.nhanKhauId, // ← ĐỔI TÊN từ nhanKhau → nhanKhauId
+        nhanKhauId: req.user.nhanKhauId,
         permissions: permissions[req.user.vaiTro] || []
       }
     });
@@ -204,7 +199,7 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
-// PUT /api/auth/link-profile - Liên kết nhân khẩu với user ← THÊM MỚI
+// PUT /api/auth/link-profile - Liên kết nhân khẩu với user
 router.put('/link-profile', authenticate, async (req, res) => {
   try {
     const { nhanKhauId } = req.body;
@@ -222,6 +217,14 @@ router.put('/link-profile', authenticate, async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Nhân khẩu không tồn tại'
+      });
+    }
+    
+    // ← KIỂM TRA CCCD CÓ KHỚP KHÔNG (BẢO MẬT)
+    if (nhanKhau.canCuocCongDan !== req.user.canCuocCongDan) {
+      return res.status(403).json({
+        success: false,
+        message: 'CCCD không khớp với tài khoản hiện tại'
       });
     }
     

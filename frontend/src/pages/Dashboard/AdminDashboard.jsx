@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import PageMeta from "../../components/common/PageMeta";
 import api from "../../services/api";
@@ -15,15 +16,19 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchStats();
+    // ← KIỂM TRA VAI TRÒ
+    if (user?.vaiTro !== 'admin') {
+      setLoading(false);
+      return;
     }
-  }, [isAdmin]);
+    fetchStats();
+  }, [user]);
 
   const fetchStats = async () => {
     try {
@@ -36,13 +41,25 @@ export default function AdminDashboard() {
     }
   };
 
-  if (!isAdmin) {
+  // ← KIỂM TRA VAI TRÒ ADMIN
+  if (user?.vaiTro !== 'admin') {
     return (
-      <div className="p-8 text-center">
-        <AlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-red-600">
-          ❌ Bạn không có quyền truy cập trang này
-        </h1>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-xl max-w-md">
+          <AlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-2">
+            ❌ Không có quyền truy cập
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Bạn không có quyền xem trang quản trị. Chỉ Admin mới có thể truy cập.
+          </p>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            ← Về trang chủ
+          </button>
+        </div>
       </div>
     );
   }

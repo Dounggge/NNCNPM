@@ -1,76 +1,72 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  userName: {
+const UserSchema = new mongoose.Schema({
+  userName: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  password: { 
+    type: String, 
+    required: true 
+  },
+  hoTen: { 
+    type: String, 
+    required: true 
+  },
+  canCuocCongDan: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  email: { 
     type: String,
-    required: true,
-    unique: true,
-    trim: true
+    // ← BỎ unique: true
+    sparse: true, // ← CHO PHÉP NHIỀU NULL
+    validate: {
+      validator: function(v) {
+        // Chỉ validate nếu có giá trị
+        if (!v) return true;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      },
+      message: 'Email không hợp lệ'
+    }
   },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
+  vaiTro: { 
+    type: String, 
+    enum: ['admin', 'to_truong', 'ke_toan', 'chu_ho', 'dan_cu'], 
+    default: 'dan_cu' 
   },
-  hoTen: {
-    type: String,
-    required: true
+  nhanKhauId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'NhanKhau' 
   },
-  email: {
-    type: String,
-    required: false, // Optional
-    unique: true,
-    sparse: true, // Allow null
-    lowercase: true,
-    trim: true,
-    default: null
-  },
-  canCuocCongDan: { // Thêm field này để link với NhanKhau
-    type: String,
-    unique: true,
-    sparse: true,
-    length: 12
-  },
-  nhanKhauId: { // Reference to NhanKhau
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'NhanKhau',
-    required: false
-  },
-  vaiTro: {
-    type: String,
-    enum: [
-      'admin',        // Quản trị viên hệ thống
-      'to_truong',    // Tổ trưởng tổ dân phố
-      'ke_toan',      // Kế toán (quản lý thu phí)
-      'chu_ho',       // Chủ hộ
-      'dan_cu'        // Dân cư thông thường
-    ],
-    default: 'dan_cu'
-  },
-  trangThai: {
-    type: String,
-    enum: ['active', 'inactive', 'suspended'],
-    default: 'active'
-  },
-  ngayTao: {
-    type: Date,
-    default: Date.now
+  trangThai: { 
+    type: String, 
+    enum: ['active', 'inactive'], 
+    default: 'active' 
   }
 }, {
   timestamps: true
 });
 
-// Hash password trước khi save
-userSchema.pre('save', async function(next) {
+// Hash password before save
+UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
-// Method check password
-userSchema.methods.comparePassword = async function(candidatePassword) {
+// Compare password
+UserSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', UserSchema);

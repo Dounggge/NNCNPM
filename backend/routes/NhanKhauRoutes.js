@@ -1,126 +1,123 @@
 const express = require('express');
 const router = express.Router();
 const NhanKhau = require('../models/NhanKhau');
-const { authenticate, authorize, checkPermission } = require('../middleware/auth');
+const { authenticate, authorize, authorizeOwnerOrAdmin } = require('../middleware/auth');
 
-// GET - Lấy danh sách nhân khẩu
-// Ai cũng xem được (đã đăng nhập)
-router.get('/', authenticate, checkPermission('nhankhau:read'), async (req, res) => {
+// GET ALL - Danh sách nhân khẩu
+router.get('/', authenticate, authorize('admin', 'to_truong', 'ke_toan'), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { search, page = 1, limit = 20 } = req.query;
     
     let query = {};
-    
-    // Nếu là dân cư thường, chỉ xem được thông tin của mình
-    if (req.user.vaiTro === 'dan_cu') {
-      query._id = req.user.nhanKhauId;
-    }
-    
-    // Nếu là chủ hộ, xem được thành viên trong hộ
-    if (req.user.vaiTro === 'chu_ho' && req.user.nhanKhauId?.hoKhauId) {
-      query.hoKhauId = req.user.nhanKhauId.hoKhauId;
-    }
-
-    // Search
     if (search) {
-      query.$or = [
-        { hoTen: { $regex: search, $options: 'i' } },
-        { canCuocCongDan: { $regex: search, $options: 'i' } }
-      ];
+      query = {
+        $or: [
+          { hoTen: { $regex: search, $options: 'i' } },
+          { canCuocCongDan: { $regex: search, $options: 'i' } }
+        ]
+      };
     }
 
     const nhanKhaus = await NhanKhau.find(query)
-      .populate('hoKhauId')
+      .populate('hoKhauId', 'soHoKhau diaChiThuongTru')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
 
-    const total = await NhanKhau.countDocuments(query);
+    const count = await NhanKhau.countDocuments(query);
 
     res.json({
-      data: nhanKhaus,
-      pagination: {
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / limit)
-      }
+      nhanKhaus,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      total: count
     });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Get NhanKhau error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// GET - Chi tiết nhân khẩu
-router.get('/:id', authenticate, checkPermission('nhankhau:read'), async (req, res) => {
+// GET BY ID - Chi tiết nhân khẩu
+// ← CHO PHÉP: Admin, Tổ trưởng, HOẶC chính user đó
+router.get('/:id', authenticate, authorizeOwnerOrAdmin, async (req, res) => {
   try {
-    const nhanKhau = await NhanKhau.findById(req.params.id).populate('hoKhauId');
-    
+    const nhanKhau = await NhanKhau.findById(req.params.id)
+      .populate('hoKhauId')
+      .populate('userId', 'userName email vaiTro');
+
     if (!nhanKhau) {
       return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
     }
 
-    // Kiểm tra quyền xem
-    if (req.user.vaiTro === 'dan_cu') {
-      if (nhanKhau._id.toString() !== req.user.nhanKhauId?.toString()) {
-        return res.status(403).json({ message: 'Bạn không có quyền xem thông tin này' });
-      }
-    }
-
     res.json(nhanKhau);
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Get NhanKhau by ID error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// POST - Thêm nhân khẩu mới
-// Chỉ admin, tổ trưởng
-router.post('/', authenticate, checkPermission('nhankhau:create'), async (req, res) => {
+// CREATE - Tạo nhân khẩu mới
+// ← CHO PHÉP TẤT CẢ (để khai báo profile lần đầu)
+router.post('/', authenticate, async (req, res) => {
   try {
-    const nhanKhau = new NhanKhau(req.body);
+    const nhanKhauData = {
+      ...req.body,
+      userId: req.user._id
+    };
+
+    const nhanKhau = new NhanKhau(nhanKhauData);
     await nhanKhau.save();
-    
-    console.log('✅ Created NhanKhau:', nhanKhau._id);
+
     res.status(201).json(nhanKhau);
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Create NhanKhau error:', error);
+    
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        message: 'CCCD đã tồn tại trong hệ thống' 
+      });
+    }
+    
+    res.status(500).json({ message: error.message });
   }
 });
 
-// PUT - Cập nhật nhân khẩu
-// Admin, tổ trưởng
-router.put('/:id', authenticate, checkPermission('nhankhau:update'), async (req, res) => {
+// UPDATE - Cập nhật nhân khẩu
+// ← CHO PHÉP: Admin, Tổ trưởng, HOẶC chính user đó
+router.put('/:id', authenticate, authorizeOwnerOrAdmin, async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-    
+
     if (!nhanKhau) {
       return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
     }
 
     res.json(nhanKhau);
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Update NhanKhau error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
 // DELETE - Xóa nhân khẩu
-// Chỉ admin
-router.delete('/:id', authenticate, checkPermission('nhankhau:delete'), async (req, res) => {
+// ← CHỈ ADMIN VÀ TỔ TRƯỞNG
+router.delete('/:id', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findByIdAndDelete(req.params.id);
-    
+
     if (!nhanKhau) {
       return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
     }
 
-    console.log('✅ Deleted NhanKhau:', req.params.id);
-    res.status(204).end();
+    res.json({ message: 'Xóa thành công' });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Delete NhanKhau error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 

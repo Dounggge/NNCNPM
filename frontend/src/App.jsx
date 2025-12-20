@@ -71,16 +71,16 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                {/* ← TRANG CHỦ: KHÔNG CẦN RequireProfile, CHỈ CẦN TOKEN */}
+                {/* ✅ TRANG CHỦ: DÀNH CHO TẤT CẢ USER (ADMIN, DÂN CƯ, TỔ TRƯỞNG...) */}
                 <Route index element={<Home />} />
                 
-                {/* ← PROFILE SETUP: KHÔNG CẦN RequireProfile */}
+                {/* ✅ PROFILE SETUP: KHÔNG CẦN RequireProfile */}
                 <Route path="profile-setup" element={<ProfileSetupForm />} />
                 
-                {/* ← ADMIN DASHBOARD: CHỈ ADMIN MỚI VÀO ĐƯỢC (KIỂM TRA BÊN TRONG COMPONENT) */}
+                {/* ✅ ADMIN DASHBOARD: CHỈ ADMIN */}
                 <Route path="admin" element={<AdminDashboard />} />
                 
-                {/* ← CÁC TRANG QUẢN LÝ: BẮT BUỘC PHẢI CÓ PROFILE */}
+                {/* ✅ CÁC TRANG QUẢN LÝ: BẮT BUỘC CÓ PROFILE */}
                 <Route path="nhankhau" element={<RequireProfile><NhanKhauList /></RequireProfile>} />
                 <Route path="nhankhau/create" element={<RequireProfile><NhanKhauForm /></RequireProfile>} />
                 <Route path="nhankhau/:id" element={<RequireProfile><NhanKhauDetail /></RequireProfile>} />

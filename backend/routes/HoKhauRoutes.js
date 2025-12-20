@@ -2,121 +2,235 @@ const express = require('express');
 const router = express.Router();
 const HoKhau = require('../models/HoKhau');
 const NhanKhau = require('../models/NhanKhau');
-const { authenticate, checkPermission } = require('../middleware/auth');
+const { authenticate, authorize } = require('../middleware/auth');
 
-// GET - Danh sách hộ khẩu
-router.get('/', authenticate, checkPermission('hokhau:read'), async (req, res) => {
+// ========== GET ALL HoKhau ==========
+router.get('/', authenticate, async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { search, page = 1, limit = 20 } = req.query;
     
     let query = {};
-
-    // Chủ hộ chỉ xem được hộ của mình
-    if (req.user.vaiTro === 'chu_ho' && req.user.nhanKhauId?.hoKhauId) {
-      query._id = req.user.nhanKhauId.hoKhauId;
+    
+    // ← DÂN CƯ CHỈ XEM HỘ KHẨU CỦA MÌNH
+    if (req.user.vaiTro === 'dan_cu' || req.user.vaiTro === 'chu_ho') {
+      // Tìm hộ khẩu có chứa nhanKhauId của user
+      if (req.user.nhanKhauId) {
+        query = {
+          thanhVien: {
+            $elemMatch: {
+              nhanKhauId: req.user.nhanKhauId
+            }
+          }
+        };
+      } else {
+        // Nếu chưa có nhanKhauId → trả về rỗng
+        return res.json({
+          hoKhaus: [],
+          totalPages: 0,
+          currentPage: 1,
+          total: 0
+        });
+      }
     }
-
-    if (search) {
-      query.$or = [
-        { soHoKhau: { $regex: search, $options: 'i' } },
-        { diaChi: { $regex: search, $options: 'i' } }
-      ];
+    
+    // Search (chỉ với admin/tổ trưởng)
+    if (search && (req.user.vaiTro === 'admin' || req.user.vaiTro === 'to_truong')) {
+      query = {
+        ...query,
+        $or: [
+          { soHoKhau: { $regex: search, $options: 'i' } },
+          { diaChiThuongTru: { $regex: search, $options: 'i' } }
+        ]
+      };
     }
 
     const hoKhaus = await HoKhau.find(query)
-      .populate('chuHoId')
+      .populate('chuHo', 'hoTen canCuocCongDan')
+      .populate('thanhVien.nhanKhauId', 'hoTen canCuocCongDan ngaySinh gioiTinh')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
 
-    const total = await HoKhau.countDocuments(query);
+    const count = await HoKhau.countDocuments(query);
 
     res.json({
-      data: hoKhaus,
-      pagination: {
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(total / limit)
-      }
+      hoKhaus,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      total: count
     });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Get HoKhau error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// GET - Chi tiết hộ khẩu với danh sách thành viên
-router.get('/:id', authenticate, checkPermission('hokhau:read'), async (req, res) => {
+// ========== GET BY ID ==========
+router.get('/:id', authenticate, async (req, res) => {
   try {
-    const hoKhau = await HoKhau.findById(req.params.id).populate('chuHoId');
-    
+    const hoKhau = await HoKhau.findById(req.params.id)
+      .populate('chuHo', 'hoTen canCuocCongDan soDienThoai')
+      .populate('thanhVien.nhanKhauId', 'hoTen canCuocCongDan ngaySinh gioiTinh queQuan danToc ngheNghiep');
+
     if (!hoKhau) {
       return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
     }
 
-    // Lấy danh sách thành viên
-    const thanhVien = await NhanKhau.find({ hoKhauId: hoKhau._id });
+    // ← KIỂM TRA QUYỀN: DÂN CƯ CHỈ XEM HỘ KHẨU CỦA MÌNH
+    if (req.user.vaiTro === 'dan_cu' || req.user.vaiTro === 'chu_ho') {
+      const isMember = hoKhau.thanhVien.some(tv => 
+        tv.nhanKhauId && 
+        req.user.nhanKhauId &&
+        tv.nhanKhauId._id.toString() === req.user.nhanKhauId.toString()
+      );
 
-    res.json({
-      ...hoKhau.toObject(),
-      thanhVien
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// POST - Tạo hộ khẩu mới
-router.post('/', authenticate, checkPermission('hokhau:create'), async (req, res) => {
-  try {
-    const hoKhau = new HoKhau(req.body);
-    await hoKhau.save();
-    
-    console.log('✅ Created HoKhau:', hoKhau._id);
-    res.status(201).json(hoKhau);
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-});
-
-// PUT - Cập nhật hộ khẩu
-router.put('/:id', authenticate, checkPermission('hokhau:update'), async (req, res) => {
-  try {
-    const hoKhau = await HoKhau.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!hoKhau) {
-      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
+      if (!isMember) {
+        return res.status(403).json({ 
+          message: 'Bạn không có quyền xem hộ khẩu này' 
+        });
+      }
     }
 
     res.json(hoKhau);
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Get HoKhau by ID error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// DELETE - Xóa hộ khẩu
-router.delete('/:id', authenticate, checkPermission('hokhau:delete'), async (req, res) => {
+// ========== CREATE ==========
+router.post('/', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
   try {
-    const hoKhau = await HoKhau.findByIdAndDelete(req.params.id);
+    const hoKhau = new HoKhau(req.body);
+    await hoKhau.save();
+
+    // Cập nhật hoKhauId cho các thành viên
+    if (req.body.thanhVien && req.body.thanhVien.length > 0) {
+      const nhanKhauIds = req.body.thanhVien.map(tv => tv.nhanKhauId);
+      await NhanKhau.updateMany(
+        { _id: { $in: nhanKhauIds } },
+        { hoKhauId: hoKhau._id }
+      );
+    }
+
+    res.status(201).json(hoKhau);
+  } catch (error) {
+    console.error('Create HoKhau error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== UPDATE ==========
+router.put('/:id', authenticate, authorize('admin', 'to_truong', 'chu_ho'), async (req, res) => {
+  try {
+    const hoKhau = await HoKhau.findById(req.params.id);
     
     if (!hoKhau) {
       return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
     }
 
-    // Cập nhật nhân khẩu trong hộ
-    await NhanKhau.updateMany(
-      { hoKhauId: req.params.id },
-      { $unset: { hoKhauId: 1 } }
+    // CHỦ HỘ CHỈ SỬA HỘ KHẨU CỦA MÌNH
+    if (req.user.vaiTro === 'chu_ho') {
+      if (hoKhau.chuHo.toString() !== req.user.nhanKhauId.toString()) {
+        return res.status(403).json({ 
+          message: 'Bạn chỉ có thể sửa hộ khẩu của mình' 
+        });
+      }
+    }
+
+    const updated = await HoKhau.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
     );
 
-    console.log('✅ Deleted HoKhau:', req.params.id);
-    res.status(204).end();
+    res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error('Update HoKhau error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== DELETE ==========
+router.delete('/:id', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
+  try {
+    const hoKhau = await HoKhau.findByIdAndDelete(req.params.id);
+
+    if (!hoKhau) {
+      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
+    }
+
+    // Xóa hoKhauId khỏi các nhân khẩu
+    await NhanKhau.updateMany(
+      { hoKhauId: req.params.id },
+      { $unset: { hoKhauId: "" } }
+    );
+
+    res.json({ message: 'Xóa thành công' });
+  } catch (error) {
+    console.error('Delete HoKhau error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== ADD MEMBER ==========
+router.post('/:id/members', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
+  try {
+    const { nhanKhauId, quanHeVoiChuHo } = req.body;
+
+    const hoKhau = await HoKhau.findById(req.params.id);
+    if (!hoKhau) {
+      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
+    }
+
+    const nhanKhau = await NhanKhau.findById(nhanKhauId);
+    if (!nhanKhau) {
+      return res.status(404).json({ message: 'Không tìm thấy nhân khẩu' });
+    }
+
+    // Check duplicate
+    const exists = hoKhau.thanhVien.some(tv => 
+      tv.nhanKhauId.toString() === nhanKhauId
+    );
+    if (exists) {
+      return res.status(400).json({ message: 'Nhân khẩu đã có trong hộ khẩu' });
+    }
+
+    hoKhau.thanhVien.push({ nhanKhauId, quanHeVoiChuHo });
+    await hoKhau.save();
+
+    nhanKhau.hoKhauId = hoKhau._id;
+    nhanKhau.quanHeVoiChuHo = quanHeVoiChuHo;
+    await nhanKhau.save();
+
+    res.json(hoKhau);
+  } catch (error) {
+    console.error('Add member error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ========== REMOVE MEMBER ==========
+router.delete('/:id/members/:memberId', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
+  try {
+    const hoKhau = await HoKhau.findById(req.params.id);
+    if (!hoKhau) {
+      return res.status(404).json({ message: 'Không tìm thấy hộ khẩu' });
+    }
+
+    hoKhau.thanhVien = hoKhau.thanhVien.filter(
+      tv => tv.nhanKhauId.toString() !== req.params.memberId
+    );
+    await hoKhau.save();
+
+    await NhanKhau.findByIdAndUpdate(req.params.memberId, {
+      $unset: { hoKhauId: "", quanHeVoiChuHo: "" }
+    });
+
+    res.json({ message: 'Xóa thành viên thành công' });
+  } catch (error) {
+    console.error('Remove member error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 

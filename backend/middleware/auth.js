@@ -126,9 +126,42 @@ const isOwnerOrAdmin = (resourceField = 'userId') => {
   };
 };
 
+const authorizeOwnerOrAdmin = async (req, res, next) => {
+  try {
+    const NhanKhau = require('../models/NhanKhau');
+    
+    // Admin hoặc tổ trưởng được phép tất cả
+    if (req.user.vaiTro === 'admin' || req.user.vaiTro === 'to_truong') {
+      return next();
+    }
+
+    // Lấy nhanKhauId từ params hoặc body
+    const nhanKhauId = req.params.id || req.body.nhanKhauId;
+    
+    // Kiểm tra xem nhanKhauId có khớp với user hiện tại không
+    if (req.user.nhanKhauId && req.user.nhanKhauId.toString() === nhanKhauId) {
+      return next();
+    }
+
+    // Kiểm tra qua bảng NhanKhau (nếu có userId)
+    const nhanKhau = await NhanKhau.findById(nhanKhauId);
+    if (nhanKhau && nhanKhau.userId && nhanKhau.userId.toString() === req.user._id.toString()) {
+      return next();
+    }
+
+    return res.status(403).json({ 
+      message: 'Bạn không có quyền xem thông tin này' 
+    });
+  } catch (error) {
+    console.error('Authorization error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = { 
   authenticate, 
   authorize, 
   checkPermission,
-  isOwnerOrAdmin 
+  isOwnerOrAdmin,
+  authorizeOwnerOrAdmin  
 };
