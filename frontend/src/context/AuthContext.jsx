@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await authAPI.getMe();
-      console.log('👤 User loaded:', response.data.data); // ← DEBUG
+      console.log('👤 User loaded:', response.data.data);
       setUser(response.data.data);
     } catch (error) {
       console.error('❌ Fetch user error:', error);
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (newUserData) => {
-    console.log('🔄 Updating user:', newUserData); // ← DEBUG
+    console.log('🔄 Updating user:', newUserData);
     setUser(newUserData);
   };
 
@@ -50,13 +50,68 @@ export const AuthProvider = ({ children }) => {
   // ← KIỂM TRA ADMIN
   const isAdmin = user?.vaiTro === 'admin';
 
-  console.log('🔍 AuthContext state:', { user, isAdmin }); // ← DEBUG
+  // ← THÊM HÀM hasPermission
+  const hasPermission = (permission) => {
+    if (!user) return false;
+
+    // Admin có tất cả quyền
+    if (user.vaiTro === 'admin') return true;
+
+    // Định nghĩa permissions theo vai trò
+    const permissions = {
+      to_truong: [
+        'nhankhau:read', 'nhankhau:create', 'nhankhau:update', 'nhankhau:delete',
+        'hokhau:read', 'hokhau:create', 'hokhau:update', 'hokhau:delete',
+        'tamtru:read', 'tamtru:create', 'tamtru:approve',
+        'tamvang:read', 'tamvang:create', 'tamvang:approve',
+        'dashboard:read'
+      ],
+      ke_toan: [
+        'nhankhau:read',
+        'hokhau:read',
+        'khoanthu:read', 'khoanthu:create', 'khoanthu:update', 'khoanthu:delete',
+        'phieuthu:read', 'phieuthu:create', 'phieuthu:update',
+        'dashboard:read'
+      ],
+      chu_ho: [
+        'nhankhau:read',
+        'hokhau:read', 'hokhau:update',
+        'phieuthu:read'
+      ],
+      dan_cu: [
+        'nhankhau:read',
+        'hokhau:read',
+        'phieuthu:read'
+      ]
+    };
+
+    const userPermissions = permissions[user.vaiTro] || [];
+    
+    // Hỗ trợ wildcard (vd: 'nhankhau:*')
+    if (permission.includes(':*')) {
+      const [resource] = permission.split(':');
+      return userPermissions.some(p => p.startsWith(resource + ':'));
+    }
+
+    return userPermissions.includes(permission);
+  };
+
+  // ← THÊM HÀM canAccess (alias)
+  const canAccess = (roles) => {
+    if (!user) return false;
+    if (!Array.isArray(roles)) roles = [roles];
+    return roles.includes(user.vaiTro);
+  };
+
+  console.log('🔍 AuthContext state:', { user, isAdmin });
 
   return (
     <AuthContext.Provider value={{ 
       user, 
       loading, 
       isAdmin,
+      hasPermission,  // ← EXPORT hasPermission
+      canAccess,       // ← EXPORT canAccess
       login, 
       logout, 
       updateUser,

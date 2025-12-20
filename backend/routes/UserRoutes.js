@@ -1,81 +1,132 @@
 const express = require('express');
 const router = express.Router();
-const { protect, authorize } = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const { authenticate, authorize } = require('../middleware/auth');
 
-// GET /api/users - Lấy danh sách users
-router.get('/', protect, authorize('admin'), async (req, res) => {
+// GET ALL USERS
+router.get('/', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
   try {
     const users = await User.find()
+      .populate('nhanKhauId', 'hoTen canCuocCongDan ngaySinh')
       .select('-password')
-      .populate('nhanKhauId', 'hoTen canCuocCongDan')
-      .sort('-createdAt');
-    
-    res.json({ success: true, data: users });
+      .sort({ createdAt: -1 });
+
+    // ← MAP ĐỂ TRẢ VỀ ĐỦ CẢ `role` VÀ `vaiTro` (tương thích)
+    const formattedUsers = users.map(user => ({
+      ...user.toObject(),
+      role: user.vaiTro,        // ← THÊM FIELD `role` = `vaiTro`
+      username: user.userName   // ← THÊM FIELD `username` = `userName`
+    }));
+
+    res.json({
+      success: true,
+      data: formattedUsers
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Get users error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 });
 
-// PUT /api/users/:userId/role - Cập nhật role
-router.put('/:userId/role', protect, authorize('admin'), async (req, res) => {
+// UPDATE ROLE
+router.put('/:userId/role', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const { role } = req.body;
+    const { role, vaiTro } = req.body;
+    
+    // ← HỖ TRỢ CẢ `role` VÀ `vaiTro`
+    const newRole = vaiTro || role;
+    
+    if (!newRole) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Thiếu vai trò' 
+      });
+    }
+
+    const validRoles = ['admin', 'to_truong', 'ke_toan', 'chu_ho', 'dan_cu'];
+    if (!validRoles.includes(newRole)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Vai trò không hợp lệ' 
+      });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
-      { role },
+      { vaiTro: newRole },  // ← LƯU VÀO `vaiTro`
       { new: true, runValidators: true }
     ).select('-password');
-    
+
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User không tồn tại' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User không tồn tại' 
+      });
     }
-    
-    res.json({ success: true, data: user });
+
+    console.log(`✅ Updated role: ${user.userName} → ${newRole}`);
+
+    res.json({
+      success: true,
+      message: 'Cập nhật vai trò thành công',
+      user: {
+        ...user.toObject(),
+        role: user.vaiTro,      // ← TRẢ VỀ CẢ `role`
+        username: user.userName // ← TRẢ VỀ CẢ `username`
+      }
+    });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('Update role error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 });
 
-// PUT /api/users/:userId/status - Cập nhật status
-router.put('/:userId/status', protect, authorize('admin'), async (req, res) => {
+// UPDATE STATUS
+router.put('/:userId/status', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const { status } = req.body;
+    const { trangThai } = req.body;
+    
+    if (!trangThai || !['active', 'inactive'].includes(trangThai)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Trạng thái không hợp lệ' 
+      });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
-      { status },
+      { trangThai },
       { new: true, runValidators: true }
     ).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User không tồn tại' });
-    }
-    
-    res.json({ success: true, data: user });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-});
 
-// PUT /api/users/:userId/link-profile - Link với nhân khẩu
-router.put('/:userId/link-profile', protect, authorize('admin'), async (req, res) => {
-  try {
-    const { nhanKhauId } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.userId,
-      { nhanKhauId },
-      { new: true, runValidators: true }
-    )
-      .select('-password')
-      .populate('nhanKhauId', 'hoTen canCuocCongDan');
-    
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User không tồn tại' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User không tồn tại' 
+      });
     }
-    
-    res.json({ success: true, data: user });
+
+    res.json({
+      success: true,
+      message: 'Cập nhật trạng thái thành công',
+      user: {
+        ...user.toObject(),
+        role: user.vaiTro,
+        username: user.userName
+      }
+    });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('Update status error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 });
 

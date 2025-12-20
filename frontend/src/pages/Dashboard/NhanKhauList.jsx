@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import { nhanKhauAPI } from '../../services/api';
@@ -8,7 +8,13 @@ import { useAuth } from '../../context/AuthContext';
 export default function NhanKhauList() {
   const [nhanKhaus, setNhanKhaus] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
+  const [error, setError] = useState('');
+  const [pagination, setPagination] = useState({ 
+    page: 1, 
+    limit: 10, 
+    total: 0,
+    totalPages: 0 
+  });
   const [search, setSearch] = useState('');
   const { hasPermission } = useAuth();
 
@@ -19,19 +25,65 @@ export default function NhanKhauList() {
   const fetchNhanKhaus = async () => {
     try {
       setLoading(true);
+      setError('');
+      
       const response = await nhanKhauAPI.getAll({
         page: pagination.page,
         limit: pagination.limit,
         search
       });
-      setNhanKhaus(response.data.data);
-      setPagination(prev => ({ ...prev, total: response.data.pagination.total }));
+
+      console.log('📊 NhanKhau response:', response.data);
+
+      // ← XỬ LÝ CẢ 2 TRƯỜNG HỢP CẤU TRÚC RESPONSE
+      const data = response.data.data || response.data.nhanKhaus || [];
+      const paginationData = response.data.pagination || {
+        total: response.data.total || 0,
+        totalPages: response.data.totalPages || 0,
+        currentPage: response.data.currentPage || 1
+      };
+
+      setNhanKhaus(data);
+      setPagination(prev => ({ 
+        ...prev, 
+        total: paginationData.total,
+        totalPages: paginationData.totalPages
+      }));
     } catch (error) {
-      console.error('Error fetching nhan khau:', error);
+      console.error('❌ Error fetching nhan khau:', error);
+      setError(error.response?.data?.message || 'Lỗi tải dữ liệu');
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Đang tải danh sách...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <p className="text-red-600 dark:text-red-400 text-lg mb-4">{error}</p>
+          <button
+            type="button"
+            onClick={fetchNhanKhaus}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -59,7 +111,7 @@ export default function NhanKhauList() {
             
             {hasPermission('nhankhau:create') && (
               <Link
-                to="/dashboard/nhankhau/new"
+                to="/dashboard/nhankhau/create"
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
               >
                 + Thêm mới
@@ -69,8 +121,10 @@ export default function NhanKhauList() {
         </div>
 
         {/* Table */}
-        {loading ? (
-          <div className="py-10 text-center text-gray-500">Đang tải...</div>
+        {nhanKhaus.length === 0 ? (
+          <div className="py-10 text-center">
+            <p className="text-gray-500 dark:text-gray-400">Không có dữ liệu</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -148,15 +202,20 @@ export default function NhanKhauList() {
           </p>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50 dark:border-gray-700"
             >
               Trước
             </button>
+            <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+              Trang {pagination.page} / {pagination.totalPages || 1}
+            </span>
             <button
+              type="button"
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-              disabled={pagination.page * pagination.limit >= pagination.total}
+              disabled={pagination.page >= pagination.totalPages}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50 dark:border-gray-700"
             >
               Sau
