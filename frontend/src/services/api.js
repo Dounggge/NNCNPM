@@ -99,6 +99,14 @@ export const phieuThuAPI = {
   markAsPaid: (id, data) => api.put(`/phieuthu/${id}/paid`, data),
 };
 
+export const donXinVaoHoAPI = {
+  getAll: (params) => api.get('/donxinvaoho', { params }),
+  getById: (id) => api.get(`/donxinvaoho/${id}`),
+  create: (data) => api.post('/donxinvaoho', data),
+  approve: (id, data) => api.put(`/donxinvaoho/${id}/duyet`, data),
+  delete: (id) => api.delete(`/donxinvaoho/${id}`)
+};
+
 // ========== USER ========== ← THÊM MỚI
 export const userAPI = {
   getAllUsers: () => api.get('/users'),

@@ -189,7 +189,10 @@ export default function Home() {
               
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/profile-setup')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Navigating to profile setup');
+                  navigate('/dashboard/profile-setup')}}
                 className="flex-shrink-0 w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -347,36 +350,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Trạng thái đóng phí */}
-            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Trạng thái đóng phí
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng phiếu thu</p>
-                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {phieuThuStatus.total}
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Đã thanh toán</p>
-                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {phieuThuStatus.paid}
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Chưa thanh toán</p>
-                  <p className="text-3xl font-bold text-red-600 dark:text-red-400">
-                    {phieuThuStatus.unpaid}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Các nút chức năng */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button
@@ -517,6 +490,32 @@ export default function Home() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ← THÊM NÚT ĐƠN XIN VÀO HỘ (CHỈ HIỂN THỊ NẾU LÀ CHỦ HỘ) */}
+      {userInfo?.vaiTro === 'chu_ho' && (
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard/donxinvaoho')}
+          className="p-6 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 hover:shadow-lg transition-shadow text-left group"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30 transition-colors">
+              <svg className="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <svg className="h-5 w-5 text-gray-400 group-hover:text-orange-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+            Đơn xin vào hộ
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Tạo đơn xin thêm thành viên vào hộ khẩu
+          </p>
+        </button>
       )}
     </>
   );

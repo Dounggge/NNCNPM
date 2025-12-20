@@ -12,6 +12,7 @@ import TamVangList from "./pages/Dashboard/TamVangList";
 import KhoanThuList from "./pages/Dashboard/KhoanThuList";
 import PhieuThuList from "./pages/Dashboard/PhieuThuList";
 import UserList from "./pages/Dashboard/UserList";
+import DonXinVaoHoList from './pages/Dashboard/DonXinVaoHoList';
 
 // FORMS
 import KhoanThuForm from "./pages/Forms/KhoanThuForm";
@@ -21,6 +22,7 @@ import NhanKhauForm from "./pages/Forms/NhanKhauForm";
 import HoKhauForm from "./pages/Forms/HoKhauForm";
 import TamTruForm from "./pages/Forms/TamTruForm";
 import TamVangForm from "./pages/Forms/TamVangForm"; 
+import DonXinVaoHoForm from './pages/Forms/DonXinVaoHoForm';
 
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
@@ -79,6 +81,9 @@ function App() {
                 
                 {/* ✅ ADMIN DASHBOARD: CHỈ ADMIN */}
                 <Route path="admin" element={<AdminDashboard />} />
+
+                <Route path="/dashboard/donxinvaoho" element={<DonXinVaoHoList />} />
+                <Route path="/dashboard/donxinvaoho/create" element={<DonXinVaoHoForm />} />
                 
                 {/* ✅ CÁC TRANG QUẢN LÝ: BẮT BUỘC CÓ PROFILE */}
                 <Route path="nhankhau" element={<RequireProfile><NhanKhauList /></RequireProfile>} />
