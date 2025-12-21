@@ -23,7 +23,12 @@ const hoKhauSchema = new mongoose.Schema({
   thanhVien: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'NhanKhau'
-  }]
+  }],
+  trangThai: {
+    type: String,
+    enum: ['pending', 'active', 'inactive'],
+    default: 'active'
+  },
 }, {
   timestamps: true
 });

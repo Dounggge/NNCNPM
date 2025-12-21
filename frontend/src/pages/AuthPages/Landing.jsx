@@ -5,31 +5,20 @@ export default function Landing() {
   return (
     <>
       <PageMeta
-        title="Hệ thống Quản lý Dân cư | Đăng nhập"
+        title="Hệ thống Quản lý Dân cư | Trang chủ"
         description="Hệ thống quản lý hộ khẩu, nhân khẩu khu dân cư"
       />
       
-      {/* Thêm flex items-center justify-center để căn giữa */}
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
         <div className="w-full max-w-md">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
-            {/* Logo/Icon */}
+            {/* ← SỬA: LOGO */}
             <div className="flex justify-center mb-8">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-                <svg 
-                  className="w-12 h-12 text-white" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
-                  />
-                </svg>
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="Logo Quản lý Dân cư" 
+                className="h-24 w-auto animate-bounce"
+              />
             </div>
 
             {/* Title */}

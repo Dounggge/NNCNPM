@@ -298,30 +298,25 @@ const AppSidebar = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/">
+        <Link to="/dashboard" className="flex items-center gap-3">
           {isExpanded || isHovered || isMobileOpen ? (
+            // ← LOGO FULL (KHI SIDEBAR MỞ RỘNG)
             <>
               <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
+                src="/logo.png"
+                alt="Logo Quản lý Dân cư"
+                className="h-12 w-auto"
               />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                Quản lý Dân cư
+              </span>
             </>
           ) : (
+            // ← LOGO NHỎ (KHI SIDEBAR THU GỌN)
             <img
-              src="/images/logo/logo-icon.svg"
+              src="/logo.png"
               alt="Logo"
-              width={32}
-              height={32}
+              className="h-10 w-auto"
             />
           )}
         </Link>

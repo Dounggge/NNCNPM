@@ -99,9 +99,27 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // ========== CREATE ==========
-router.post('/', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
+router.post('/', authenticate, authorize('admin', 'to_truong', 'chu_ho', 'dan_cu'), async (req, res) => {
   try {
-    const hoKhau = new HoKhau(req.body);
+    const userRole = req.user.vaiTro;
+    
+    // ← NẾU LÀ DÂN CƯ → TỰ ĐỘNG SET `trangThai: 'pending'`
+    let finalTrangThai = req.body.trangThai;
+    if (userRole === 'dan_cu') {
+      finalTrangThai = 'pending'; // ← CHỜ DUYỆT
+      console.log('🔔 Dân cư đăng ký hộ khẩu mới → Trạng thái: pending');
+    } else if (userRole === 'chu_ho') {
+      finalTrangThai = req.body.trangThai || 'pending';
+    } else {
+      finalTrangThai = req.body.trangThai || 'active'; // ← ADMIN/TỔ TRƯỞNG → ACTIVE NGAY
+    }
+
+    const hoKhau = new HoKhau({
+      ...req.body,
+      trangThai: finalTrangThai,
+      nguoiTao: req.user._id
+    });
+    
     await hoKhau.save();
 
     // Cập nhật hoKhauId cho các thành viên
@@ -113,10 +131,19 @@ router.post('/', authenticate, authorize('admin', 'to_truong'), async (req, res)
       );
     }
 
-    res.status(201).json(hoKhau);
+    res.status(201).json({
+      success: true,
+      message: userRole === 'dan_cu' 
+        ? '✅ Đăng ký hộ khẩu thành công! Vui lòng chờ tổ trưởng duyệt.' 
+        : '✅ Tạo hộ khẩu thành công!',
+      data: hoKhau
+    });
   } catch (error) {
     console.error('Create HoKhau error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 });
 
