@@ -572,7 +572,7 @@ export default function Home() {
             </button>
           )}
         </div>
-      </div>
+      </div> 
 
       {/* Modal gửi phản hồi */}
       {showFeedbackForm && (
