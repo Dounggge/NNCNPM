@@ -24,7 +24,8 @@ const tamVangRoutes = require('./routes/TamVangRoutes');
 const khoanThuRoutes = require('./routes/KhoanThuRoutes');  
 const phieuThuRoutes = require('./routes/PhieuThuRoutes');
 const donXinVaoHoRoutes = require('./routes/DonXinVaoHoRoutes');  
-const userRoutes = require('./routes/UserRoutes');          
+const userRoutes = require('./routes/UserRoutes');
+const notificationRoutes = require('./routes/NotificationRoutes');          
 
 // ========== REGISTER ROUTES ==========
 app.use('/api/auth', authRoutes);
@@ -37,6 +38,7 @@ app.use('/api/khoanthu', khoanThuRoutes);
 app.use('/api/phieuthu', phieuThuRoutes);
 app.use('/api/donxinvaoho', donXinVaoHoRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

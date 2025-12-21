@@ -49,13 +49,14 @@ export default function HoKhauCreateForm() {
     setLoading(true);
     try {
       const dataToSend = {
-        ...formData,
-        chuHo: userInfo.nhanKhauId._id || userInfo.nhanKhauId,
-        thanhVien: [{
-          nhanKhauId: userInfo.nhanKhauId._id || userInfo.nhanKhauId,
-          quanHeVoiChuHo: 'Chủ hộ'
-        }]
+        soHoKhau: formData.soHoKhau,
+        diaChiThuongTru: formData.diaChiThuongTru,
+        ngayLap: formData.ngayLap,
+        chuHo: userInfo.nhanKhauId._id || userInfo.nhanKhauId
+        // ← BỎ FIELD thanhVien
       };
+
+      console.log('📤 Sending data:', dataToSend);
 
       await hoKhauAPI.create(dataToSend);
       alert('✅ Đăng ký hộ khẩu thành công!');

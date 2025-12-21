@@ -29,12 +29,13 @@ const navItems = [
     icon: <PieChartIcon />,
     name: "Admin Dashboard",
     path: "/dashboard/admin",
-    adminOnly: true, // ← flag để check quyền admin
+    adminOnly: true, 
   },
   {
     icon: <UserCircleIcon />,
     name: "Quản lý Hộ Khẩu",
     path: "/dashboard/hokhau",
+    allowedRoles: ['admin', 'to_truong', 'ke_toan'], // ← SỬA: THÊM ke_toan
   },
   {
     icon: <ListIcon />,
@@ -92,7 +93,7 @@ const othersItems = [
 
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth(); // ← THÊM: import user từ useAuth
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -156,7 +157,15 @@ const AppSidebar = () => {
   const renderMenuItems = (items, menuType) => (
     <ul className="flex flex-col gap-4">
       {items
-      .filter(nav => !nav.adminOnly || isAdmin)
+      .filter(nav => {
+        // ← LỌC THEO adminOnly
+        if (nav.adminOnly && !isAdmin) return false;
+        
+        // ← LỌC THEO allowedRoles (BÂY GIỜ ĐÃ CÓ user)
+        if (nav.allowedRoles && !nav.allowedRoles.includes(user?.vaiTro)) return false;
+        
+        return true;
+      })
       .map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
@@ -300,7 +309,6 @@ const AppSidebar = () => {
       >
         <Link to="/dashboard" className="flex items-center gap-3">
           {isExpanded || isHovered || isMobileOpen ? (
-            // ← LOGO FULL (KHI SIDEBAR MỞ RỘNG)
             <>
               <img
                 src="/logo.png"
@@ -312,7 +320,6 @@ const AppSidebar = () => {
               </span>
             </>
           ) : (
-            // ← LOGO NHỎ (KHI SIDEBAR THU GỌN)
             <img
               src="/logo.png"
               alt="Logo"

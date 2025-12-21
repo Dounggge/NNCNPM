@@ -1,65 +1,90 @@
 const mongoose = require('mongoose');
 
-const NhanKhauSchema = new mongoose.Schema({
-  canCuocCongDan: { 
-    type: String, 
-    required: [true, 'CCCD là bắt buộc'],
+const nhanKhauSchema = new mongoose.Schema({
+  hoTen: {
+    type: String,
+    required: true
+  },
+  canCuocCongDan: {
+    type: String,
+    required: true,
     unique: true,
     validate: {
       validator: function(v) {
-        return /^[0-9]{9,12}$/.test(v);
+        return /^[0-9]{12}$/.test(v);
       },
-      message: 'CCCD phải là 9-12 chữ số'
+      message: 'CCCD phải là 12 chữ số'
     }
   },
-  hoTen: { 
-    type: String, 
-    required: [true, 'Họ tên là bắt buộc']
-  },
-  ngaySinh: { 
+  ngaySinh: {
     type: Date,
-    required: [true, 'Ngày sinh là bắt buộc']
+    required: true
   },
-  gioiTinh: { 
-    type: String, 
-    enum: ['Nam', 'Nu', 'Khac'],
-    required: [true, 'Giới tính là bắt buộc']
-  },
-  queQuan: { 
+  gioiTinh: {
     type: String,
-    required: [true, 'Quê quán là bắt buộc']
+    enum: ['Nam', 'Nữ', 'Nu', 'Khác'],
+    required: true
   },
-  danToc: { 
-    type: String,
-    required: [true, 'Dân tộc là bắt buộc']
-  },
-  ngheNghiep: { 
-    type: String,
-    required: [true, 'Nghề nghiệp là bắt buộc']
-  },
-  quocTich: { type: String, default: 'Việt Nam' },
   noiSinh: String,
-  diaChiThuongTru: String,
-  diaChiHienTai: String,
-  soDienThoai: String,
-  email: String,
+  queQuan: {
+    type: String,
+    required: true
+  },
+  danToc: {
+    type: String,
+    required: true
+  },
+  tonGiao: String,
+  ngheNghiep: {
+    type: String,
+    required: true
+  },
   noiLamViec: String,
   trinhDoHocVan: String,
-  tonGiao: String,
-  hoKhauId: { type: mongoose.Schema.Types.ObjectId, ref: 'HoKhau' },
+  soDienThoai: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        if (!v) return true;
+        return /^[0-9]{10}$/.test(v);
+      },
+      message: 'Số điện thoại phải là 10 chữ số'
+    }
+  },
+  email: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        if (!v) return true;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      },
+      message: 'Email không hợp lệ'
+    }
+  },
+  hoKhauId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HoKhau'
+  },
+  // ← THÊM FIELD NÀY
   quanHeVoiChuHo: {
     type: String,
-    enum: ['Chủ hộ', 'Vợ/Chồng', 'Con', 'Bố/Mẹ', 'Anh/Chị/Em', 'Ông/Bà', 'Khác']
+    enum: ['Chủ hộ', 'Vợ', 'Chồng', 'Con', 'Cha', 'Mẹ', 'Anh', 'Chị', 'Em', 'Ông', 'Bà', 'Cháu', 'Khác']
   },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  quocTich: {
+    type: String,
+    default: 'Việt Nam'
+  },
   trangThai: {
     type: String,
-    enum: ['active', 'moved', 'deceased'],
+    enum: ['active', 'inactive'],
     default: 'active'
   },
-  ghiChu: String
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model('NhanKhau', NhanKhauSchema);
+module.exports = mongoose.model('NhanKhau', nhanKhauSchema);
