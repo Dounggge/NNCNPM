@@ -23,6 +23,7 @@ import HoKhauForm from "./pages/Forms/HoKhauForm";
 import TamTruForm from "./pages/Forms/TamTruForm";
 import TamVangForm from "./pages/Forms/TamVangForm"; 
 import DonXinVaoHoForm from './pages/Forms/DonXinVaoHoForm';
+import HoKhauCreateForm from './pages/Forms/HoKhauCreateForm'; // ← SỬA TÊN FILE
 
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
@@ -73,35 +74,34 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                {/* ✅ TRANG CHỦ: DÀNH CHO TẤT CẢ USER (ADMIN, DÂN CƯ, TỔ TRƯỞNG...) */}
                 <Route index element={<Home />} />
-                
-                {/* ✅ PROFILE SETUP: KHÔNG CẦN RequireProfile */}
                 <Route path="profile-setup" element={<ProfileSetupForm />} />
-                
-                {/* ✅ ADMIN DASHBOARD: CHỈ ADMIN */}
                 <Route path="admin" element={<AdminDashboard />} />
 
-                <Route path="/dashboard/donxinvaoho" element={<DonXinVaoHoList />} />
-                <Route path="/dashboard/donxinvaoho/create" element={<DonXinVaoHoForm />} />
+                {/* ← ĐƠN XIN VÀO HỘ */}
+                <Route path="donxinvaoho" element={<DonXinVaoHoList />} />
+                <Route path="donxinvaoho/create" element={<DonXinVaoHoForm />} />
                 
-                {/* ✅ CÁC TRANG QUẢN LÝ: BẮT BUỘC CÓ PROFILE */}
+                {/* QUẢN LÝ NHÂN KHẨU */}
                 <Route path="nhankhau" element={<RequireProfile><NhanKhauList /></RequireProfile>} />
                 <Route path="nhankhau/create" element={<RequireProfile><NhanKhauForm /></RequireProfile>} />
                 <Route path="nhankhau/:id" element={<RequireProfile><NhanKhauDetail /></RequireProfile>} />
                 <Route path="nhankhau/:id/edit" element={<RequireProfile><NhanKhauForm /></RequireProfile>} />
                 
+                {/* QUẢN LÝ HỘ KHẨU */}
                 <Route path="hokhau" element={<RequireProfile><HoKhauList /></RequireProfile>} />
-                <Route path="hokhau/create" element={<RequireProfile><HoKhauForm /></RequireProfile>} />
+                <Route path="hokhau/create" element={<HoKhauCreateForm />} /> {/* ← SỬA: ĐỔI TÊN COMPONENT */}
                 <Route path="hokhau/:id" element={<RequireProfile><HoKhauDetail /></RequireProfile>} />
                 <Route path="hokhau/:id/edit" element={<RequireProfile><HoKhauForm /></RequireProfile>} />
 
+                {/* TẠM TRÚ / TẠM VẮNG */}
                 <Route path="tamtru-tamvang" element={<RequireProfile><TamTruTamVang /></RequireProfile>} />
                 <Route path="tamtru" element={<RequireProfile><TamTruList /></RequireProfile>} />
                 <Route path="tamtru/create" element={<RequireProfile><TamTruForm /></RequireProfile>} />
                 <Route path="tamvang" element={<RequireProfile><TamVangList /></RequireProfile>} />
                 <Route path="tamvang/create" element={<RequireProfile><TamVangForm /></RequireProfile>} />
                 
+                {/* QUẢN LÝ THU PHÍ */}
                 <Route path="khoanthu" element={<RequireProfile><KhoanThuList /></RequireProfile>} />
                 <Route path="khoanthu/create" element={<RequireProfile><KhoanThuForm /></RequireProfile>} />
                 <Route path="khoanthu/:id/edit" element={<RequireProfile><KhoanThuForm /></RequireProfile>} />
@@ -109,6 +109,7 @@ function App() {
                 <Route path="phieuthu" element={<RequireProfile><PhieuThuList /></RequireProfile>} />
                 <Route path="phieuthu/create" element={<RequireProfile><PhieuThuForm /></RequireProfile>} />
 
+                {/* QUẢN LÝ USER */}
                 <Route path="users" element={<RequireProfile><UserList /></RequireProfile>} />
                 <Route path="users/:userId/profile-setup" element={<RequireProfile><ProfileSetupForm /></RequireProfile>} />
               </Route>
