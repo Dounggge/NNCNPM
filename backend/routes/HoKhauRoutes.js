@@ -266,7 +266,26 @@ router.patch('/:id/approve', authenticate, authorize('admin', 'to_truong'), asyn
     }
 
     hoKhau.trangThai = 'active';
+    hoKhau.nguoiDuyet = req.user._id;
+    hoKhau.ngayDuyet = new Date();
     await hoKhau.save();
+
+    // ← TẠO THÔNG BÁO CHO NGƯỜI TẠO
+    try {
+      const { createNotification } = require('../utils/notificationHelper');
+      
+      if (hoKhau.nguoiTao) {
+        await createNotification(hoKhau.nguoiTao, {
+          type: 'ho_khau_duyet',
+          title: '✅ Hộ khẩu đã được duyệt',
+          message: `Hộ khẩu ${hoKhau.soHoKhau} của bạn đã được ${req.user.hoTen || req.user.userName} duyệt.`,
+          link: `/dashboard/hokhau/${hoKhau._id}`,
+          relatedId: hoKhau._id
+        });
+      }
+    } catch (notifError) {
+      console.error('⚠️ Notification error:', notifError);
+    }
 
     res.json({
       success: true,
@@ -275,6 +294,71 @@ router.patch('/:id/approve', authenticate, authorize('admin', 'to_truong'), asyn
     });
   } catch (error) {
     console.error('Approve HoKhau error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
+  }
+});
+
+// ← THÊM ROUTE MỚI: REJECT
+router.patch('/:id/reject', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    if (!reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng nhập lý do từ chối'
+      });
+    }
+
+    const hoKhau = await HoKhau.findById(req.params.id);
+
+    if (!hoKhau) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy hộ khẩu'
+      });
+    }
+
+    if (hoKhau.trangThai !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Hộ khẩu này đã được xử lý'
+      });
+    }
+
+    hoKhau.trangThai = 'rejected';
+    hoKhau.nguoiDuyet = req.user._id;
+    hoKhau.ngayDuyet = new Date();
+    hoKhau.lyDoTuChoi = reason;
+    await hoKhau.save();
+
+    // ← TẠO THÔNG BÁO CHO NGƯỜI TẠO
+    try {
+      const { createNotification } = require('../utils/notificationHelper');
+      
+      if (hoKhau.nguoiTao) {
+        await createNotification(hoKhau.nguoiTao, {
+          type: 'ho_khau_tu_choi',
+          title: '❌ Hộ khẩu bị từ chối',
+          message: `Hộ khẩu ${hoKhau.soHoKhau} của bạn đã bị từ chối. Lý do: ${reason}`,
+          link: `/dashboard/hokhau/${hoKhau._id}`,
+          relatedId: hoKhau._id
+        });
+      }
+    } catch (notifError) {
+      console.error('⚠️ Notification error:', notifError);
+    }
+
+    res.json({
+      success: true,
+      message: '✅ Đã từ chối hộ khẩu',
+      data: hoKhau
+    });
+  } catch (error) {
+    console.error('Reject HoKhau error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -312,7 +396,7 @@ router.delete('/:id', authenticate, authorize('admin', 'to_truong'), async (req,
   }
 });
 
-// ========== ADD MEMBER ==========
+// ========== ADD MEMBER ========== 
 router.post('/:id/members', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
   try {
     const { nhanKhauId, quanHeVoiChuHo } = req.body;
@@ -333,23 +417,43 @@ router.post('/:id/members', authenticate, authorize('admin', 'to_truong'), async
       });
     }
 
-    if (hoKhau.thanhVien.includes(nhanKhauId)) {
+    // ← KIỂM TRA NHÂN KHẨU ĐÃ CÓ HỘ KHẨU KHÁC CHƯA
+    if (nhanKhau.hoKhauId && nhanKhau.hoKhauId.toString() !== req.params.id) {
       return res.status(400).json({ 
         success: false,
-        message: 'Nhân khẩu đã có trong hộ khẩu' 
+        message: `Nhân khẩu này đã thuộc hộ khẩu khác. Vui lòng xóa khỏi hộ khẩu cũ trước.` 
       });
     }
 
+    // ← KIỂM TRA NHÂN KHẨU ĐÃ TRONG DANH SÁCH THÀNH VIÊN CHƯA
+    const daTonTai = hoKhau.thanhVien.some(tv => tv.toString() === nhanKhauId);
+    if (daTonTai) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Nhân khẩu đã có trong hộ khẩu này' 
+      });
+    }
+
+    // ← THÊM VÀO DANH SÁCH THÀNH VIÊN
     hoKhau.thanhVien.push(nhanKhauId);
     await hoKhau.save();
 
+    // ← CẬP NHẬT NHÂN KHẨU
     nhanKhau.hoKhauId = hoKhau._id;
     nhanKhau.quanHeVoiChuHo = quanHeVoiChuHo;
     await nhanKhau.save();
 
+    // ← POPULATE LẠI ĐỂ TRẢ VỀ
+    const updatedHoKhau = await HoKhau.findById(req.params.id)
+      .populate('chuHo', 'hoTen canCuocCongDan')
+      .populate('thanhVien', 'hoTen canCuocCongDan ngaySinh gioiTinh quanHeVoiChuHo');
+
+    console.log('✅ Added member to HoKhau:', nhanKhau.hoTen);
+
     res.json({
       success: true,
-      data: hoKhau
+      message: `✅ Đã thêm ${nhanKhau.hoTen} vào hộ khẩu`,
+      data: updatedHoKhau
     });
   } catch (error) {
     console.error('Add member error:', error);

@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   // ← KIỂM TRA ADMIN
   const isAdmin = user?.vaiTro === 'admin';
 
-  // ← THÊM HÀM hasPermission
+  // ← HÀM hasPermission
   const hasPermission = (permission) => {
     if (!user) return false;
 
@@ -96,11 +96,20 @@ export const AuthProvider = ({ children }) => {
     return userPermissions.includes(permission);
   };
 
-  // ← THÊM HÀM canAccess (alias)
+  // ← HÀM canAccess (KIỂM TRA THEO VAI TRÒ)
   const canAccess = (roles) => {
     if (!user) return false;
-    if (!Array.isArray(roles)) roles = [roles];
-    return roles.includes(user.vaiTro);
+    
+    // ← HỖ TRỢ CẢ STRING VÀ ARRAY
+    if (typeof roles === 'string') {
+      return user.vaiTro === roles;
+    }
+    
+    if (Array.isArray(roles)) {
+      return roles.includes(user.vaiTro);
+    }
+    
+    return false;
   };
 
   console.log('🔍 AuthContext state:', { user, isAdmin });
@@ -111,7 +120,7 @@ export const AuthProvider = ({ children }) => {
       loading, 
       isAdmin,
       hasPermission,  // ← EXPORT hasPermission
-      canAccess,       // ← EXPORT canAccess
+      canAccess,      // ← EXPORT canAccess
       login, 
       logout, 
       updateUser,

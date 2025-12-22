@@ -24,20 +24,28 @@ const hoKhauSchema = new mongoose.Schema({
     ref: 'NhanKhau',
     required: true
   },
-  // ← ĐƠN GIẢN: CHỈ LÀ ARRAY OF ObjectId
   thanhVien: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'NhanKhau'
   }],
   trangThai: {
     type: String,
-    enum: ['pending', 'active', 'inactive'],
+    enum: ['pending', 'active', 'inactive', 'rejected'], // ← THÊM 'rejected'
     default: 'pending'
   },
   nguoiTao: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
+  
+  // ← THÊM 3 FIELD MỚI
+  nguoiDuyet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  ngayDuyet: Date,
+  lyDoTuChoi: String
+  
 }, {
   timestamps: true
 });

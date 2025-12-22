@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import PageMeta from "../../components/common/PageMeta";
-import { authAPI, nhanKhauAPI, hoKhauAPI, phieuThuAPI } from "../../services/api";
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { authAPI, hoKhauAPI, nhanKhauAPI, phieuThuAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import PageMeta from '../../components/common/PageMeta';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [userInfo, setUserInfo] = useState(null);
   const [nhanKhauInfo, setNhanKhauInfo] = useState(null);
   const [hoKhauInfo, setHoKhauInfo] = useState(null);
@@ -15,81 +17,61 @@ export default function Home() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-  const [feedback, setFeedback] = useState({
-    subject: '',
-    content: ''
-  });
 
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [currentUser]);
 
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      
-      // ← LẤY THÔNG TIN USER
-      const userRes = await authAPI.getMe();
-      const userData = userRes.data.data || userRes.data;
+      setError('');
+
+      const userResponse = await authAPI.getMe();
+      const userData = userResponse.data.data || userResponse.data;
       setUserInfo(userData);
-      
-      console.log('🔍 USER INFO:', userData);
-      console.log('🔍 nhanKhauId:', userData.nhanKhauId);
-      
-      // ← KIỂM TRA CÓ nhanKhauId KHÔNG
+
       if (userData.nhanKhauId) {
         const nhanKhauId = userData.nhanKhauId._id || userData.nhanKhauId;
         
-        console.log('🔗 Fetching nhanKhau with ID:', nhanKhauId);
-        
-        // ← GỌI API LẤY NHÂN KHẨU
-        const nhanKhauRes = await nhanKhauAPI.getById(nhanKhauId);
-        
-        // ← SỬA: LẤY ĐÚNG DỮ LIỆU TỪ RESPONSE
-        const nkData = nhanKhauRes.data?.data || nhanKhauRes.data;
-        
-        console.log('✅ nhanKhau raw response:', nhanKhauRes.data);
-        console.log('✅ nhanKhau data extracted:', nkData);
-        
-        setNhanKhauInfo(nkData);
-        
-        // ← LẤY HỘ KHẨU
-        const hoKhauRes = await hoKhauAPI.getAll();
-        const allHoKhaus = hoKhauRes.data.hoKhaus || hoKhauRes.data.data || hoKhauRes.data || [];
-        
-        console.log('📊 All hoKhaus:', allHoKhaus);
-        
-        const userHoKhau = allHoKhaus.find(hk => 
-          hk.thanhVien && hk.thanhVien.some(tv => {
-            const tvId = tv.nhanKhauId?._id || tv.nhanKhauId;
-            return tvId?.toString() === nhanKhauId?.toString();
-          })
-        );
-        
-        console.log('🏠 User hoKhau:', userHoKhau);
-        
-        if (userHoKhau) {
-          setHoKhauInfo(userHoKhau);
+        try {
+          const nhanKhauResponse = await nhanKhauAPI.getById(nhanKhauId);
+          const nhanKhauData = nhanKhauResponse.data.data || nhanKhauResponse.data;
+          setNhanKhauInfo(nhanKhauData);
+
+          if (nhanKhauData.hoKhauId) {
+            const hoKhauId = nhanKhauData.hoKhauId._id || nhanKhauData.hoKhauId;
+            
+            try {
+              const hoKhauResponse = await hoKhauAPI.getById(hoKhauId);
+              const hoKhauData = hoKhauResponse.data.data || hoKhauResponse.data;
+              setHoKhauInfo(hoKhauData);
+            } catch (hoKhauError) {
+              console.error('⚠️ Get HoKhau error:', hoKhauError);
+            }
+          }
+        } catch (nhanKhauError) {
+          console.error('⚠️ Get NhanKhau error:', nhanKhauError);
+        }
+      }
+
+      if (userData.nhanKhauId) {
+        try {
+          const phieuThuResponse = await phieuThuAPI.getAll();
+          const phieuThus = phieuThuResponse.data.data || [];
           
-          // ← LẤY PHIẾU THU
-          const phieuThuRes = await phieuThuAPI.getAll({
-            hoKhauId: userHoKhau._id
-          });
-          
-          const phieuThus = phieuThuRes.data.data || phieuThuRes.data || [];
           setPhieuThuStatus({
             total: phieuThus.length,
-            paid: phieuThus.filter(p => p.trangThai === 'da_dong').length,
-            unpaid: phieuThus.filter(p => p.trangThai === 'chua_dong').length
+            paid: phieuThus.filter(pt => pt.trangThai === 'da_dong').length,
+            unpaid: phieuThus.filter(pt => pt.trangThai === 'chua_dong').length
           });
+        } catch (phieuThuError) {
+          console.error('⚠️ Get PhieuThu error:', phieuThuError);
         }
-      } else {
-        console.log('⚠️ User chưa có nhanKhauId');
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Lỗi tải dữ liệu');
-      console.error('❌ User data error:', err);
+    } catch (error) {
+      console.error('❌ Fetch user data error:', error);
+      setError(error.response?.data?.message || 'Lỗi tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -97,39 +79,40 @@ export default function Home() {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
   const getRoleLabel = (role) => {
-    const roles = {
-      'admin': { label: 'Quản trị viên', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-      'to_truong': { label: 'Tổ trưởng', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
-      'chu_ho': { label: 'Chủ hộ', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-      'dan_cu': { label: 'Dân cư', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' }
+    const labels = {
+      admin: 'Quản trị viên',
+      to_truong: 'Tổ trưởng',
+      ke_toan: 'Kế toán',
+      chu_ho: 'Chủ hộ',
+      dan_cu: 'Dân cư'
     };
-    return roles[role] || { label: role, color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' };
+    return labels[role] || role;
   };
 
-  const getRelationshipLabel = (relation) => {
-    const relations = {
-      'Chủ hộ': { label: 'Chủ hộ', icon: '👨‍💼' },
-      'Vợ/Chồng': { label: 'Vợ/Chồng', icon: '💑' },
-      'Con': { label: 'Con', icon: '👶' },
-      'Bố/Mẹ': { label: 'Bố/Mẹ', icon: '👴👵' },
-      'Anh/Chị/Em': { label: 'Anh/Chị/Em', icon: '👫' },
-      'Ông/Bà': { label: 'Ông/Bà', icon: '👴👵' },
-      'Khác': { label: 'Khác', icon: '👤' }
+  const getRoleColor = (role) => {
+    const colors = {
+      admin: 'from-red-500 to-pink-600',
+      to_truong: 'from-blue-500 to-cyan-600',
+      ke_toan: 'from-green-500 to-emerald-600',
+      chu_ho: 'from-purple-500 to-violet-600',
+      dan_cu: 'from-orange-500 to-amber-600'
     };
-    return relations[relation] || { label: relation || 'Chưa xác định', icon: '❓' };
+    return colors[role] || 'from-gray-500 to-gray-600';
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
+          <div className="relative w-20 h-20 mx-auto mb-4">
+            <div className="absolute inset-0 border-4 border-blue-200 dark:border-blue-900 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Đang tải thông tin...</p>
         </div>
       </div>
     );
@@ -138,14 +121,14 @@ export default function Home() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-lg mb-4">{error}</p>
+        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 max-w-md">
+          <div className="text-5xl mb-4">❌</div>
+          <p className="text-red-600 dark:text-red-400 text-lg mb-4 font-semibold">{error}</p>
           <button
-            type="button" 
             onClick={fetchUserData}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg font-medium"
           >
-            Thử lại
+            🔄 Thử lại
           </button>
         </div>
       </div>
@@ -154,493 +137,365 @@ export default function Home() {
 
   return (
     <>
-      <PageMeta
-        title="Thông tin cá nhân | Hệ thống Quản lý Khu Dân Cư"
-        description="Thông tin cá nhân"
-      />
-      
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          👤 Thông Tin Cá Nhân
-        </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Xem và quản lý thông tin cá nhân của bạn
-        </p>
-      </div>
+      <PageMeta title="Trang chủ | Dashboard" />
 
       <div className="space-y-6">
-        {/* BANNER KHAI BÁO - CHỈ HIỂN THỊ KHI CHƯA CÓ PROFILE */}
-        {!userInfo?.nhanKhauId && (
-          <div className="rounded-xl border-2 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-6 shadow-lg">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-start gap-4 flex-1">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        {/* ← WELCOME BANNER - GRADIENT ĐỘNG */}
+        <div className={`rounded-2xl bg-gradient-to-r ${getRoleColor(userInfo?.vaiTro)} p-8 text-white shadow-2xl relative overflow-hidden`}>
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h1 className="text-4xl font-bold mb-3 flex items-center gap-3">
+                  <span className="animate-wave">👋</span> 
+                  Xin chào, {userInfo?.hoTen || userInfo?.userName}!
+                </h1>
+                <div className="flex items-center gap-4 text-white/90">
+                  <span className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                     </svg>
-                  </div>
-                </div>
-                
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-1">
-                    ⚠️ Chưa khai báo thông tin cá nhân
-                  </h3>
-                  <p className="text-yellow-800 dark:text-yellow-300 text-sm mb-2">
-                    Tài khoản chưa được liên kết với thông tin nhân khẩu. Vui lòng khai báo để sử dụng đầy đủ chức năng hệ thống.
-                  </p>
-                  <div className="flex items-start gap-2 text-xs text-yellow-700 dark:text-yellow-400">
-                    <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    {getRoleLabel(userInfo?.vaiTro)}
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>
-                      <strong>Yêu cầu bắt buộc:</strong> Họ tên, Ngày sinh, Giới tính, Quê quán, Dân tộc, Nghề nghiệp
-                    </span>
-                  </div>
+                    {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
                 </div>
               </div>
-              
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log('🔘 Navigating to profile-setup...');
-                  navigate('/dashboard/profile-setup');
-                }}
-                className="flex-shrink-0 w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Khai báo ngay
-              </button>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* THÔNG TIN TÀI KHOẢN - LUÔN HIỂN THỊ */}
-        {userInfo && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Thông tin tài khoản
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Tên đăng nhập</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {userInfo.userName || userInfo.username}
+        {/* ← ALERT: CHƯA CÓ PROFILE */}
+        {!nhanKhauInfo && (
+          <div className="rounded-2xl border-2 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-6 shadow-lg">
+            <div className="flex items-start gap-4">
+              <div className="text-5xl animate-bounce">⚠️</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-yellow-900 dark:text-yellow-500 mb-2">
+                  Bạn chưa khai báo thông tin cá nhân
+                </h3>
+                <p className="text-sm text-yellow-800 dark:text-yellow-400 mb-4">
+                  Để sử dụng đầy đủ các chức năng của hệ thống, vui lòng hoàn thành khai báo thông tin cá nhân ngay.
                 </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Vai trò</label>
-                <div className="mt-1">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getRoleLabel(userInfo.vaiTro).color}`}>
-                    {getRoleLabel(userInfo.vaiTro).label}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Trạng thái</label>
-                <div className="mt-1">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                    userInfo.trangThai === 'active' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                  }`}>
-                    <span className={`w-2 h-2 rounded-full ${userInfo.trangThai === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                    {userInfo.trangThai === 'active' ? 'Hoạt động' : 'Bị khóa'}
-                  </span>
-                </div>
+                <button
+                  onClick={() => navigate('/dashboard/profile-setup')}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all shadow-lg font-medium flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Khai báo ngay
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* THÔNG TIN CÁ NHÂN - CHỈ HIỂN THỊ NẾU CÓ nhanKhauInfo */}
-        {nhanKhauInfo && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                </svg>
-                Thông tin cá nhân
-              </h2>
-              {nhanKhauInfo.quanHeVoiChuHo && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
-                  {getRelationshipLabel(nhanKhauInfo.quanHeVoiChuHo).icon} {getRelationshipLabel(nhanKhauInfo.quanHeVoiChuHo).label}
-                </span>
+        {/* ← GRID: THÔNG TIN CÁ NHÂN & HỘ KHẨU */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* THÔNG TIN CÁ NHÂN */}
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  Thông tin cá nhân
+                </h2>
+                
+                {nhanKhauInfo && (
+                  <Link
+                    to={`/dashboard/nhankhau/${nhanKhauInfo._id}`}
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium flex items-center gap-1"
+                  >
+                    Chỉnh sửa
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6">
+              {nhanKhauInfo ? (
+                <div className="space-y-4">
+                  <InfoRow label="Họ và tên" value={nhanKhauInfo.hoTen} icon="👤" />
+                  <InfoRow label="CCCD" value={nhanKhauInfo.canCuocCongDan} icon="🪪" />
+                  <InfoRow label="Ngày sinh" value={formatDate(nhanKhauInfo.ngaySinh)} icon="🎂" />
+                  <InfoRow label="Giới tính" value={nhanKhauInfo.gioiTinh} icon={nhanKhauInfo.gioiTinh === 'Nam' ? '👨' : '👩'} />
+                  <InfoRow label="Dân tộc" value={nhanKhauInfo.danToc || 'N/A'} icon="🌏" />
+                  <InfoRow label="Nghề nghiệp" value={nhanKhauInfo.ngheNghiep || 'N/A'} icon="💼" />
+                  <InfoRow label="SĐT" value={nhanKhauInfo.soDienThoai || 'Chưa cập nhật'} icon="📱" />
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4 opacity-50">📋</div>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">Chưa có thông tin cá nhân</p>
+                  <button
+                    onClick={() => navigate('/dashboard/profile-setup')}
+                    className="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-semibold flex items-center gap-2 mx-auto"
+                  >
+                    Khai báo ngay
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               )}
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Họ và tên</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.hoTen}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Ngày sinh</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {formatDate(nhanKhauInfo.ngaySinh)}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Giới tính</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.gioiTinh === 'Nam' ? '👨 Nam' : nhanKhauInfo.gioiTinh === 'Nu' ? '👩 Nữ' : '⚧ Khác'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">CCCD/CMND</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {userInfo.canCuocCongDan || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Số điện thoại</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.soDienThoai || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Email</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.email || userInfo.email || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Dân tộc</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.danToc || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Tôn giáo</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.tonGiao || 'Không'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Nghề nghiệp</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.ngheNghiep || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Nơi làm việc</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.noiLamViec || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Trình độ học vấn</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.trinhDoHocVan || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Quốc tịch</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.quocTich || 'Việt Nam'}
-                </p>
-              </div>
-              <div className="md:col-span-3">
-                <label className="text-sm text-gray-500 dark:text-gray-400">Quê quán</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.queQuan || 'Chưa cập nhật'}
-                </p>
-              </div>
-              <div className="md:col-span-3">
-                <label className="text-sm text-gray-500 dark:text-gray-400">Nơi sinh</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {nhanKhauInfo.noiSinh || 'Chưa cập nhật'}
-                </p>
-              </div>
-            </div>
           </div>
-        )}
 
-        {/* THÔNG TIN HỘ KHẨU - CHỈ HIỂN THỊ NẾU CÓ hoKhauInfo */}
-        {hoKhauInfo && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Thông tin hộ khẩu
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Số hộ khẩu</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {hoKhauInfo.soHoKhau}
-                </p>
+          {/* THÔNG TIN HỘ KHẨU */}
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                  </div>
+                  Hộ khẩu
+                </h2>
+
+                {hoKhauInfo && (
+                  <Link
+                    to={`/dashboard/hokhau/${hoKhauInfo._id}`}
+                    className="text-sm text-green-600 hover:text-green-700 dark:text-green-400 font-medium flex items-center gap-1"
+                  >
+                    Xem chi tiết
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                )}
               </div>
-              <div className="md:col-span-2">
-                <label className="text-sm text-gray-500 dark:text-gray-400">Địa chỉ thường trú</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {hoKhauInfo.diaChiThuongTru}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Số thành viên</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {hoKhauInfo.thanhVien?.length || 0} người
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Ngày lập</label>
-                <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-                  {formatDate(hoKhauInfo.ngayLap)}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500 dark:text-gray-400">Trạng thái</label>
-                <div className="mt-1">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                    hoKhauInfo.trangThai === 'active' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                  }`}>
-                    {hoKhauInfo.trangThai === 'active' ? '✅ Hoạt động' : '❌ Không hoạt động'}
-                  </span>
+            </div>
+
+            <div className="p-6">
+              {hoKhauInfo ? (
+                <div className="space-y-4">
+                  <InfoRow label="Số hộ khẩu" value={hoKhauInfo.soHoKhau} icon="🔢" highlight />
+                  <InfoRow label="Chủ hộ" value={hoKhauInfo.chuHo?.hoTen || 'N/A'} icon="👤" />
+                  <InfoRow label="Địa chỉ thường trú" value={hoKhauInfo.diaChiThuongTru} icon="📍" />
+                  <InfoRow label="Số thành viên" value={`${hoKhauInfo.thanhVien?.length || 0} người`} icon="👥" />
+                  <InfoRow 
+                    label="Quan hệ với chủ hộ" 
+                    value={nhanKhauInfo?.quanHeVoiChuHo || 'N/A'} 
+                    icon="👨‍👩‍👧‍👦"
+                  />
+                  <InfoRow 
+                    label="Trạng thái" 
+                    icon="📊"
+                    value={
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                        hoKhauInfo.trangThai === 'active' 
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : hoKhauInfo.trangThai === 'pending'
+                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${
+                          hoKhauInfo.trangThai === 'active' ? 'bg-green-500 animate-pulse' : 
+                          hoKhauInfo.trangThai === 'pending' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-500'
+                        }`}></span>
+                        {hoKhauInfo.trangThai === 'active' ? 'Hoạt động' : 
+                         hoKhauInfo.trangThai === 'pending' ? 'Chờ duyệt' : 'Không hoạt động'}
+                      </span>
+                    } 
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* THỐNG KÊ PHIẾU THU */}
-        {phieuThuStatus.total > 0 && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              Thống kê phiếu thu
-            </h2>
-            
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{phieuThuStatus.total}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tổng số phiếu</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{phieuThuStatus.paid}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Đã đóng</p>
-              </div>
-              <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{phieuThuStatus.unpaid}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Chưa đóng</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* CÁC NÚT CHỨC NĂNG - LUÔN HIỂN THỊ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Nút 1: Xem hộ khẩu */}
-          <button
-            type="button"
-            onClick={() => hoKhauInfo ? navigate(`/dashboard/hokhau/${hoKhauInfo._id}`) : alert('Bạn chưa thuộc hộ khẩu nào')}
-            className="p-6 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 hover:shadow-lg transition-shadow text-left group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
-                <svg className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-              </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-              Xem hộ khẩu
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Xem chi tiết thông tin hộ khẩu và các thành viên
-            </p>
-          </button>
-
-          {/* Nút 2: Xem phiếu thu */}
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard/phieuthu')}
-            className="p-6 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 hover:shadow-lg transition-shadow text-left group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 group-hover:bg-green-100 dark:group-hover:bg-green-900/30 transition-colors">
-                <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-              Xem phiếu thu
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Kiểm tra trạng thái các khoản phí cần đóng
-            </p>
-          </button>
-
-          {/* Nút 3: Gửi phản hồi */}
-          <button
-            type="button"
-            onClick={() => setShowFeedbackForm(true)}
-            className="p-6 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 hover:shadow-lg transition-shadow text-left group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors">
-                <svg className="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </div>
-              <svg className="h-5 w-5 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-              Gửi phản hồi
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Đóng góp ý kiến, phản ánh vấn đề với ban quản lý
-            </p>
-          </button>
-
-          {/* ← SỬA: Nút 4 - ĐĂNG KÝ HỘ KHẨU MỚI (CHO TẤT CẢ USER CHƯA CÓ HỘ KHẨU) */}
-          {!hoKhauInfo && userInfo?.vaiTro !== 'admin' && userInfo?.vaiTro !== 'to_truong' && (
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard/hokhau/create')}
-              className="p-6 rounded-xl border-2 border-dashed border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/20 hover:shadow-lg transition-shadow text-left group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/30 group-hover:bg-orange-200 dark:group-hover:bg-orange-900/50 transition-colors">
-                  <svg className="h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+              ) : nhanKhauInfo ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4 opacity-50">🏠</div>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4 font-medium">Chưa thuộc hộ khẩu nào</p>
+                  <button
+                    onClick={() => navigate('/dashboard/hokhau/create')}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg font-medium flex items-center gap-2 mx-auto"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Đăng ký hộ khẩu mới
+                  </button>
                 </div>
-                <svg className="h-5 w-5 text-orange-400 group-hover:text-orange-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-200 mb-1">
-                {userInfo?.vaiTro === 'dan_cu' ? 'Đăng ký hộ khẩu mới' : 'Tạo hộ khẩu mới'}
-              </h3>
-              <p className="text-sm text-orange-700 dark:text-orange-400">
-                {userInfo?.vaiTro === 'dan_cu' 
-                  ? 'Đăng ký hộ khẩu mới và chờ tổ trưởng duyệt' 
-                  : 'Tạo hộ khẩu mới cho gia đình của bạn'
-                }
-              </p>
-            </button>
-          )}
-
-          {/* Nút 5: ĐƠN XIN VÀO HỘ (CHỈ CHỦ HỘ + ĐÃ CÓ HỘ KHẨU) */}
-          {userInfo?.vaiTro === 'chu_ho' && hoKhauInfo && (
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard/donxinvaoho')}
-              className="p-6 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 hover:shadow-lg transition-shadow text-left group"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors">
-                  <svg className="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4 opacity-50">🔒</div>
+                  <p className="text-gray-500 dark:text-gray-400">Vui lòng khai báo thông tin cá nhân trước</p>
                 </div>
-                <svg className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Đơn xin vào hộ
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tạo đơn xin thêm thành viên vào hộ khẩu
-              </p>
-            </button>
-          )}
-        </div>
-      </div> 
-
-      {/* Modal gửi phản hồi */}
-      {showFeedbackForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-xl max-w-2xl w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                💬 Gửi phản hồi
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowFeedbackForm(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              )}
             </div>
-            
-            <form onSubmit={handleSubmitFeedback} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tiêu đề <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={feedback.subject}
-                  onChange={(e) => setFeedback({ ...feedback, subject: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                  placeholder="Nhập tiêu đề phản hồi"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nội dung <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  required
-                  rows="6"
-                  value={feedback.content}
-                  onChange={(e) => setFeedback({ ...feedback, content: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                  placeholder="Nhập nội dung phản hồi, ý kiến đóng góp..."
-                />
-              </div>
-              
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowFeedbackForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                >
-                  Gửi phản hồi
-                </button>
-              </div>
-            </form>
           </div>
         </div>
-      )}
+
+        {/* ← QUICK ACTIONS - CHỈ HIỆN KHI ĐÃ CÓ PROFILE */}
+        {nhanKhauInfo && (
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg p-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+              <span className="text-3xl">🚀</span> 
+              Thao tác nhanh
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* ← NÚT 1: XEM HỘ KHẨU (CHỈ HIỆN KHI ĐÃ CÓ HỘ KHẨU) */}
+              {hoKhauInfo && (
+                <ActionCard
+                  icon="🏠"
+                  title="Xem hộ khẩu"
+                  description="Chi tiết hộ khẩu và thành viên"
+                  onClick={() => navigate(`/dashboard/hokhau/${hoKhauInfo._id}`)}
+                  color="from-blue-500 to-cyan-500"
+                />
+              )}
+
+              {/* ← NÚT 2: XEM PHIẾU THU */}
+              <ActionCard
+                icon="💰"
+                title="Xem phiếu thu"
+                description={`Khoản phí cần đóng${phieuThuStatus.unpaid > 0 ? ` (${phieuThuStatus.unpaid})` : ''}`}
+                onClick={() => navigate('/dashboard/phieuthu')}
+                badge={phieuThuStatus.unpaid > 0 ? phieuThuStatus.unpaid : null}
+                color="from-green-500 to-emerald-500"
+              />
+
+              {/* ← NÚT 3: GỬI PHẢN HỒI */}
+              <ActionCard
+                icon="💬"
+                title="Gửi phản hồi"
+                description="Đóng góp ý kiến với ban quản lý"
+                onClick={() => alert('Tính năng đang phát triển')}
+                color="from-purple-500 to-pink-500"
+              />
+
+              {/* ← NÚT 4 & 5: ĐĂNG KÝ HỘ KHẨU HOẶC TẠO ĐƠN XIN VÀO HỘ (CHỈ HIỆN KHI CHƯA CÓ HỘ KHẨU) */}
+              {!hoKhauInfo && (
+                <>
+                  <ActionCard
+                    icon="📝"
+                    title="Đăng ký hộ khẩu mới"
+                    description="Tạo hộ khẩu mới và làm chủ hộ"
+                    onClick={() => navigate('/dashboard/hokhau/create')}
+                    color="from-orange-500 to-red-500"
+                  />
+
+                  <ActionCard
+                    icon="📄"
+                    title="Tạo đơn xin vào hộ"
+                    description="Xin vào hộ khẩu đã có sẵn"
+                    onClick={() => navigate('/dashboard/donxinvaoho/create')}
+                    color="from-indigo-500 to-purple-500"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ← THÔNG BÁO */}
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </div>
+            Thông báo & Tin tức
+          </h2>
+
+          <div className="space-y-4">
+            <NotificationItem
+              icon="🎉"
+              title="Chào mừng bạn đến với hệ thống quản lý dân cư"
+              time="Hôm nay"
+              description="Cảm ơn bạn đã tham gia sử dụng hệ thống. Vui lòng hoàn thành khai báo thông tin để sử dụng đầy đủ các tính năng."
+              color="from-blue-500 to-cyan-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes wave {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(20deg); }
+          75% { transform: rotate(-20deg); }
+        }
+        .animate-wave {
+          display: inline-block;
+          animation: wave 1s ease-in-out infinite;
+        }
+      `}</style>
     </>
+  );
+}
+
+// ============ HELPER COMPONENTS ============
+
+function InfoRow({ label, value, icon, highlight = false }) {
+  return (
+    <div className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{icon}</span>
+        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</span>
+      </div>
+      <span className={`text-sm font-semibold text-right ${
+        highlight 
+          ? 'text-blue-600 dark:text-blue-400' 
+          : 'text-gray-900 dark:text-white'
+      }`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function ActionCard({ icon, title, description, onClick, badge, color }) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative p-6 border border-gray-200 dark:border-gray-800 rounded-xl hover:scale-105 transition-all duration-300 text-left group bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-md hover:shadow-xl"
+    >
+      {badge && (
+        <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-8 h-8 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg animate-pulse">
+          {badge}
+        </span>
+      )}
+      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center text-3xl mb-4 shadow-lg`}>
+        {icon}
+      </div>
+      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        {title}
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+    </button>
+  );
+}
+
+function NotificationItem({ icon, title, time, description, color }) {
+  return (
+    <div className={`p-5 bg-gradient-to-r ${color} bg-opacity-10 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-md transition-shadow`}>
+      <div className="flex items-start gap-4">
+        <div className="text-3xl">{icon}</div>
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-2">
+            <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
+            <span className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1 rounded-full">{time}</span>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+        </div>
+      </div>
+    </div>
   );
 }

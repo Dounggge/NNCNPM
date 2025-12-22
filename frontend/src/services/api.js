@@ -56,6 +56,8 @@ export const hoKhauAPI = {
   delete: (id) => api.delete(`/hokhau/${id}`),
   addMember: (id, data) => api.post(`/hokhau/${id}/members`, data),
   removeMember: (id, memberId) => api.delete(`/hokhau/${id}/members/${memberId}`),
+    approve: (id) => api.patch(`/hokhau/${id}/approve`),
+  reject: (id, data) => api.patch(`/hokhau/${id}/reject`, data),
 };
 
 // ========== TẠM TRÚ ==========

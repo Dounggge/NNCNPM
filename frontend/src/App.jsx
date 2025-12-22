@@ -23,14 +23,14 @@ import HoKhauForm from "./pages/Forms/HoKhauForm";
 import TamTruForm from "./pages/Forms/TamTruForm";
 import TamVangForm from "./pages/Forms/TamVangForm"; 
 import DonXinVaoHoForm from './pages/Forms/DonXinVaoHoForm';
-import HoKhauCreateForm from './pages/Forms/HoKhauCreateForm'; // ← SỬA TÊN FILE
+import HoKhauCreateForm from './pages/Forms/HoKhauCreateForm';
+import HoKhauAddMemberForm from './pages/Forms/HoKhauAddMemberForm';
 
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import Landing from "./pages/AuthPages/Landing"; 
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
-import { AppWrapper } from "./components/common/PageMeta";
 import RequireProfile from "./components/common/RequireProfile";
 
 function ProtectedRoute({ children }) {
@@ -43,7 +43,6 @@ function ProtectedRoute({ children }) {
 
 function App() {
   return (
-    <AppWrapper>
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>
@@ -93,6 +92,7 @@ function App() {
                 <Route path="hokhau/create" element={<HoKhauCreateForm />} /> {/* ← SỬA: ĐỔI TÊN COMPONENT */}
                 <Route path="hokhau/:id" element={<RequireProfile><HoKhauDetail /></RequireProfile>} />
                 <Route path="hokhau/:id/edit" element={<RequireProfile><HoKhauForm /></RequireProfile>} />
+                <Route path="hokhau/:id/add-member" element={<HoKhauAddMemberForm />} />
 
                 {/* TẠM TRÚ / TẠM VẮNG */}
                 <Route path="tamtru-tamvang" element={<RequireProfile><TamTruTamVang /></RequireProfile>} />
@@ -120,7 +120,6 @@ function App() {
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
-    </AppWrapper>
   );
 }
 
