@@ -106,17 +106,24 @@ router.patch('/read-all', authenticate, async (req, res) => {
 // DELETE
 router.delete('/:id', authenticate, async (req, res) => {
   try {
-    const notification = await Notification.findOneAndDelete({ 
-      _id: req.params.id, 
-      userId: req.user._id 
-    });
+    const notification = await Notification.findById(req.params.id);
 
     if (!notification) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy thông báo' 
+        message: 'Không tìm thấy thông báo'
       });
     }
+
+    // ← CHỈ CHỦ SỞ HỮU HOẶC ADMIN MỚI XÓA ĐƯỢC
+    if (notification.userId.toString() !== req.user._id.toString() && req.user.vaiTro !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xóa thông báo này'
+      });
+    }
+
+    await Notification.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
@@ -124,11 +131,13 @@ router.delete('/:id', authenticate, async (req, res) => {
     });
   } catch (error) {
     console.error('Delete notification error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: error.message 
+      message: error.message
     });
   }
 });
+
+module.exports = router;
 
 module.exports = router;

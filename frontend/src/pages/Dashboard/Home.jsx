@@ -375,8 +375,26 @@ export default function Home() {
                 icon="💬"
                 title="Gửi phản hồi"
                 description="Đóng góp ý kiến với ban quản lý"
-                onClick={() => alert('Tính năng đang phát triển')}
+                onClick={() => navigate('/dashboard/feedback')}
                 color="from-purple-500 to-pink-500"
+              />
+
+              {/* ⭐ NÚT MỚI 4: ĐĂNG KÝ TẠM TRÚ */}
+              <ActionCard
+                icon="🏘️"
+                title="Đăng ký tạm trú"
+                description="Khai báo thông tin tạm trú"
+                onClick={() => navigate('/dashboard/tamtru/create')}
+                color="from-orange-500 to-amber-500"
+              />
+
+              {/* ⭐ NÚT MỚI 5: ĐĂNG KÝ TẠM VẮNG */}
+              <ActionCard
+                icon="✈️"
+                title="Đăng ký tạm vắng"
+                description="Khai báo thông tin tạm vắng"
+                onClick={() => navigate('/dashboard/tamvang/create')}
+                color="from-rose-500 to-red-500"
               />
 
               {/* ← NÚT 4 & 5: ĐĂNG KÝ HỘ KHẨU HOẶC TẠO ĐƠN XIN VÀO HỘ (CHỈ HIỆN KHI CHƯA CÓ HỘ KHẨU) */}

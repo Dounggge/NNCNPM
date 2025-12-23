@@ -37,7 +37,6 @@ const hoKhauSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  
   // ← THÊM 3 FIELD MỚI
   nguoiDuyet: {
     type: mongoose.Schema.Types.ObjectId,

@@ -45,6 +45,7 @@ export const nhanKhauAPI = {
   create: (data) => api.post('/nhankhau', data),
   update: (id, data) => api.put(`/nhankhau/${id}`, data),
   delete: (id) => api.delete(`/nhankhau/${id}`),
+  getAvailableForHoKhau: (hoKhauId, params) => api.get(`/nhankhau/available-for-hokhau/${hoKhauId}`, { params })
 };
 
 // ========== HỘ KHẨU ==========
@@ -56,8 +57,9 @@ export const hoKhauAPI = {
   delete: (id) => api.delete(`/hokhau/${id}`),
   addMember: (id, data) => api.post(`/hokhau/${id}/members`, data),
   removeMember: (id, memberId) => api.delete(`/hokhau/${id}/members/${memberId}`),
-    approve: (id) => api.patch(`/hokhau/${id}/approve`),
+  approve: (id) => api.patch(`/hokhau/${id}/approve`),
   reject: (id, data) => api.patch(`/hokhau/${id}/reject`, data),
+    getAvailableForJoin: (params) => api.get('/hokhau/available-for-join', { params }),
 };
 
 // ========== TẠM TRÚ ==========
@@ -65,10 +67,7 @@ export const tamTruAPI = {
   getAll: (params) => api.get('/tamtru', { params }),
   getById: (id) => api.get(`/tamtru/${id}`),
   create: (data) => api.post('/tamtru', data),
-  update: (id, data) => api.put(`/tamtru/${id}`, data),
   delete: (id) => api.delete(`/tamtru/${id}`),
-  approve: (id) => api.put(`/tamtru/${id}/approve`),
-  reject: (id, data) => api.put(`/tamtru/${id}/reject`, data),
 };
 
 // ========== TẠM VẮNG ==========
@@ -76,10 +75,7 @@ export const tamVangAPI = {
   getAll: (params) => api.get('/tamvang', { params }),
   getById: (id) => api.get(`/tamvang/${id}`),
   create: (data) => api.post('/tamvang', data),
-  update: (id, data) => api.put(`/tamvang/${id}`, data),
   delete: (id) => api.delete(`/tamvang/${id}`),
-  approve: (id) => api.put(`/tamvang/${id}/approve`),
-  reject: (id, data) => api.put(`/tamvang/${id}/reject`, data),
 };
 
 // ========== KHOẢN THU ==========
@@ -105,7 +101,6 @@ export const donXinVaoHoAPI = {
   getAll: (params) => api.get('/donxinvaoho', { params }),
   getById: (id) => api.get(`/donxinvaoho/${id}`),
   create: (data) => api.post('/donxinvaoho', data),
-  approve: (id, data) => api.put(`/donxinvaoho/${id}/duyet`, data),
   delete: (id) => api.delete(`/donxinvaoho/${id}`)
 };
 
@@ -134,6 +129,15 @@ export const notificationAPI = {
   markAsRead: (id) => api.patch(`/notifications/${id}/read`),
   markAllAsRead: () => api.patch('/notifications/read-all'),
   delete: (id) => api.delete(`/notifications/${id}`)
+};
+
+export const feedbackAPI = {
+  create: (data) => api.post('/feedbacks', data),
+  getAll: (params) => api.get('/feedbacks', { params }),
+  getMyFeedbacks: () => api.get('/feedbacks/my-feedbacks'),
+  getById: (id) => api.get(`/feedbacks/${id}`),
+  reply: (id, data) => api.put(`/feedbacks/${id}/reply`, data),
+  delete: (id) => api.delete(`/feedbacks/${id}`)
 };
 
 export default api;

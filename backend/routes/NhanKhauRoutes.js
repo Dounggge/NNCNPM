@@ -3,8 +3,67 @@ const router = express.Router();
 const NhanKhau = require('../models/NhanKhau');
 const { authenticate, authorize, checkPermission, authorizeOwnerOrAdmin } = require('../middleware/auth');
 
+// ========== GET AVAILABLE FOR HO KHAU (ĐỨNG TRƯỚC ROUTE /:id) ==========
+router.get('/available-for-hokhau/:hoKhauId', authenticate, async (req, res) => {
+  try {
+    const { hoKhauId } = req.params;
+    const { search } = req.query;
+
+    console.log('🔍 [GET /available-for-hokhau/:hoKhauId] Params:', { hoKhauId, search });
+
+    // ← TÌM NHÂN KHẨU:
+    // 1. CHƯA CÓ hoKhauId (chưa thuộc hộ nào)
+    // 2. HOẶC có hoKhauId NHƯNG KHÔNG PHẢI hộ hiện tại
+    let query = {
+      $or: [
+        { hoKhauId: null },                          // ← Chưa có hộ khẩu
+        { hoKhauId: { $exists: false } },           // ← Field không tồn tại
+        { hoKhauId: { $ne: hoKhauId } }             // ← Thuộc hộ khác (nếu muốn cho phép chuyển hộ)
+      ]
+    };
+
+    // ← NẾU CHỈ MUỐN LẤY NGƯỜI CHƯA CÓ HỘ KHẨU, DÙNG:
+    // query = {
+    //   $or: [
+    //     { hoKhauId: null },
+    //     { hoKhauId: { $exists: false } }
+    //   ]
+    // };
+
+    if (search) {
+      query.$and = [
+        query,
+        {
+          $or: [
+            { hoTen: { $regex: search, $options: 'i' } },
+            { canCuocCongDan: { $regex: search, $options: 'i' } }
+          ]
+        }
+      ];
+    }
+
+    const nhanKhaus = await NhanKhau.find(query)
+      .select('hoTen canCuocCongDan ngaySinh gioiTinh queQuan hoKhauId')
+      .populate('hoKhauId', 'soHoKhau')
+      .limit(100)
+      .sort({ hoTen: 1 });
+
+    console.log(`✅ [GET /available-for-hokhau] Found ${nhanKhaus.length} nhân khẩu`);
+
+    res.json({
+      success: true,
+      data: nhanKhaus
+    });
+  } catch (error) {
+    console.error('❌ Get available nhan khau error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
+  }
+});
+
 // ========== GET ALL NhanKhau ==========
-// ← SỬA: CHO PHÉP TẤT CẢ USER ĐÃ ĐĂNG NHẬP
 router.get('/', authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
@@ -17,7 +76,6 @@ router.get('/', authenticate, async (req, res) => {
       if (nhanKhauId) {
         query._id = nhanKhauId;
       } else {
-        // Nếu chưa có profile thì không xem được gì
         return res.json({
           success: true,
           data: [],
@@ -31,7 +89,6 @@ router.get('/', authenticate, async (req, res) => {
       }
     }
 
-    // ← ADMIN/TỔ TRƯỞNG XEM TẤT CẢ
     if (search && (req.user.vaiTro === 'admin' || req.user.vaiTro === 'to_truong')) {
       query.$or = [
         { hoTen: { $regex: search, $options: 'i' } },
@@ -67,12 +124,10 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // ========== GET BY ID ==========
-// ← SỬA: CHO PHÉP USER XEM THÔNG TIN CỦA MÌNH HOẶC ADMIN/TỔ TRƯỞNG XEM TẤT CẢ
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findById(req.params.id)
-      .populate('hoKhauId', 'soHoKhau diaChiThuongTru chuHo thanhVien')
-      .populate('userId', 'userName email vaiTro');
+      .populate('hoKhauId', 'soHoKhau diaChiThuongTru');
 
     if (!nhanKhau) {
       return res.status(404).json({ 
@@ -81,15 +136,14 @@ router.get('/:id', authenticate, async (req, res) => {
       });
     }
 
-    // ← KIỂM TRA QUYỀN: DÂN CƯ CHỈ XEM THÔNG TIN CỦA MÌNH
-    if (req.user.vaiTro === 'dan_cu') {
-      const userNhanKhauId = req.user.nhanKhauId?._id || req.user.nhanKhauId;
-      if (nhanKhau._id.toString() !== userNhanKhauId?.toString()) {
-        return res.status(403).json({ 
-          success: false,
-          message: 'Bạn không có quyền xem thông tin này' 
-        });
-      }
+    const userNhanKhauId = req.user.nhanKhauId?._id?.toString() || req.user.nhanKhauId?.toString();
+    const nhanKhauIdStr = nhanKhau._id.toString();
+
+    if (req.user.vaiTro === 'dan_cu' && userNhanKhauId !== nhanKhauIdStr) {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Bạn không có quyền xem thông tin này' 
+      });
     }
 
     res.json({

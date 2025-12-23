@@ -35,6 +35,7 @@ export default function NotificationBell() {
     }
   };
 
+  // ← CHỈ GIỮ 1 FUNCTION DUY NHẤT (BẢN MỚI VỚI DELAY)
   const handleMarkAsRead = async (notification) => {
     try {
       await notificationAPI.markAsRead(notification._id);
@@ -44,9 +45,14 @@ export default function NotificationBell() {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
 
+      // ← XỬ LÝ NAVIGATION
       if (notification.link) {
-        navigate(notification.link);
-        setIsOpen(false);
+        setIsOpen(false); // ← ĐÓNG DROPDOWN TRƯỚC
+        
+        // ← DELAY 100MS ĐỂ DROPDOWN ĐÓNG MỚI NAVIGATE
+        setTimeout(() => {
+          navigate(notification.link);
+        }, 100);
       }
     } catch (error) {
       console.error('Mark as read error:', error);
@@ -56,7 +62,10 @@ export default function NotificationBell() {
   const handleMarkAllAsRead = async () => {
     try {
       await notificationAPI.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, isRead: true }))
+      );
       setUnreadCount(0);
     } catch (error) {
       console.error('Mark all as read error:', error);

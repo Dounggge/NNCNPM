@@ -4,41 +4,36 @@ const NotificationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
   type: {
     type: String,
-    enum: [
-      'ho_khau_moi',
-      'ho_khau_duyet',
-      'ho_khau_tu_choi',
-      'don_xin_vao_ho',
-      'don_xin_duyet',
-      'phieu_thu_moi',
-      'vai_tro_thay_doi',
-      'thong_bao_chung'
-    ],
-    required: true
+    enum: ['info', 'success', 'warning', 'error'], // ← BẮT BUỘC PHẢI CÓ 'info'
+    required: true,
+    default: 'info'
   },
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   message: {
     type: String,
     required: true
   },
-  link: String,
+  link: {
+    type: String,
+    trim: true
+  },
   isRead: {
     type: Boolean,
     default: false
-  },
-  relatedId: mongoose.Schema.Types.ObjectId
+  }
 }, {
   timestamps: true
 });
 
-NotificationSchema.index({ userId: 1, createdAt: -1 });
-NotificationSchema.index({ userId: 1, isRead: 1 });
+NotificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Notification', NotificationSchema);

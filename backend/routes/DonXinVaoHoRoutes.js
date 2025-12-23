@@ -3,21 +3,29 @@ const router = express.Router();
 const DonXinVaoHo = require('../models/DonXinVaoHo');
 const NhanKhau = require('../models/NhanKhau');
 const HoKhau = require('../models/HoKhau');
+const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
+const { createNotification } = require('../utils/notificationHelper');
 
-// GET ALL - Danh sách đơn (Tổ trưởng xem tất cả, Chủ hộ xem của mình)
+// ========== HELPER: LẤY NHÂN KHẨU TỪ USER ==========
+const getNhanKhauFromUser = async (userId) => {
+  const user = await User.findById(userId).populate('nhanKhauId');
+  return user?.nhanKhauId || null;
+};
+
+// ========== GET ALL ==========
 router.get('/', authenticate, async (req, res) => {
   try {
     const { trangThai, page = 1, limit = 20 } = req.query;
     
     let query = {};
     
-    // Chủ hộ chỉ xem đơn của mình
-    if (req.user.vaiTro === 'chu_ho') {
-      query.chuHoId = req.user.nhanKhauId;
+    // ← CHỈ ADMIN/TỔ TRƯỞNG XEM TẤT CẢ
+    // DÂN CƯ CHỈ XEM ĐƠN CỦA MÌNH
+    if (req.user.vaiTro === 'dan_cu') {
+      query.nguoiTao = req.user._id;
     }
     
-    // Filter theo trạng thái
     if (trangThai) {
       query.trangThai = trangThai;
     }
@@ -25,8 +33,7 @@ router.get('/', authenticate, async (req, res) => {
     const dons = await DonXinVaoHo.find(query)
       .populate('hoKhauId', 'soHoKhau diaChiThuongTru')
       .populate('chuHoId', 'hoTen canCuocCongDan soDienThoai')
-      .populate('nguoiDuyet', 'hoTen userName')
-      .populate('nhanKhauId', 'hoTen canCuocCongDan')
+      .populate('nguoiTao', 'hoTen userName')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
@@ -52,51 +59,80 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
-// GET BY ID
+// ========== GET BY ID ==========
 router.get('/:id', authenticate, async (req, res) => {
   try {
+    console.log('🔍 [GET /:id] Fetching đơn:', req.params.id);
+
     const don = await DonXinVaoHo.findById(req.params.id)
-      .populate('hoKhauId')
-      .populate('chuHoId')
-      .populate('nguoiDuyet', 'hoTen userName')
-      .populate('nhanKhauId');
+      .populate('hoKhauId', 'soHoKhau diaChiThuongTru chuHo')
+      .populate('chuHoId', 'hoTen canCuocCongDan soDienThoai')
+      .populate('nguoiTao', 'hoTen userName');
 
     if (!don) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy đơn' 
+        message: 'Không tìm thấy đơn'
       });
     }
 
-    // Kiểm tra quyền: Chủ hộ chỉ xem đơn của mình
-    if (req.user.vaiTro === 'chu_ho' && 
-        don.chuHoId._id.toString() !== req.user.nhanKhauId.toString()) {
-      return res.status(403).json({ 
+    // ← KIỂM TRA QUYỀN: CHỈ NGƯỜI TẠO HOẶC ADMIN/TỔ TRƯỞNG MỚI XEM ĐƯỢC
+    const isDonCuaMinh = don.nguoiTao?._id?.toString() === req.user._id.toString();
+    const isAdmin = ['admin', 'to_truong'].includes(req.user.vaiTro);
+
+    if (!isDonCuaMinh && !isAdmin) {
+      return res.status(403).json({
         success: false,
-        message: 'Bạn không có quyền xem đơn này' 
+        message: 'Bạn không có quyền xem đơn này'
       });
     }
+
+    console.log('✅ [GET /:id] Đơn found:', don._id);
 
     res.json({
       success: true,
       data: don
     });
   } catch (error) {
-    console.error('Get DonXinVaoHo by ID error:', error);
-    res.status(500).json({ 
+    console.error('❌ [GET /:id] Error:', error);
+    res.status(500).json({
       success: false,
-      message: error.message 
+      message: error.message
     });
   }
 });
 
-// CREATE - Chủ hộ tạo đơn
-router.post('/', authenticate, authorize('chu_ho', 'admin', 'to_truong'), async (req, res) => {
+// ========== CREATE ==========
+router.post('/', authenticate, authorize('dan_cu', 'admin', 'to_truong'), async (req, res) => {
   try {
-    const { hoKhauId, thongTinNguoiXin, quanHeVoiChuHo, lyDo } = req.body;
+    const { 
+      hoKhauId, 
+      nguoiXin,
+      canCuocCongDan, 
+      ngaySinh, 
+      gioiTinh, 
+      queQuan,
+      danToc, 
+      tonGiao,
+      ngheNghiep,
+      noiLamViec,
+      soDienThoai,
+      quanHeVoiChuHo,
+      lyDo 
+    } = req.body;
 
-    // Kiểm tra hộ khẩu tồn tại
-    const hoKhau = await HoKhau.findById(hoKhauId);
+    console.log('📝 [CREATE DON] Received data:', req.body);
+
+    // ← VALIDATE
+    if (!hoKhauId || !nguoiXin || !canCuocCongDan || !queQuan || !quanHeVoiChuHo || !lyDo) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Vui lòng điền đầy đủ thông tin bắt buộc' 
+      });
+    }
+
+    // ← KIỂM TRA HỘ KHẨU
+    const hoKhau = await HoKhau.findById(hoKhauId).populate('chuHo');
     if (!hoKhau) {
       return res.status(404).json({ 
         success: false,
@@ -104,46 +140,69 @@ router.post('/', authenticate, authorize('chu_ho', 'admin', 'to_truong'), async 
       });
     }
 
-    // Kiểm tra user có phải chủ hộ không
-    if (req.user.vaiTro === 'chu_ho' && 
-        hoKhau.chuHo.toString() !== req.user.nhanKhauId.toString()) {
-      return res.status(403).json({ 
-        success: false,
-        message: 'Bạn không phải chủ hộ của hộ khẩu này' 
-      });
+    // ← CHỈ KIỂM TRA - KHÔNG CHẶN (CHỈ CẢNH BÁO)
+    const existingNhanKhau = await NhanKhau.findOne({ canCuocCongDan });
+    if (existingNhanKhau?.hoKhauId) {
+      const oldHoKhau = await HoKhau.findById(existingNhanKhau.hoKhauId);
+      console.log(`⚠️ [CREATE DON] CCCD ${canCuocCongDan} đã thuộc hộ ${oldHoKhau?.soHoKhau}`);
+      // ← KHÔNG RETURN - CHỈ LOG WARNING
     }
 
-    // Kiểm tra CCCD đã tồn tại trong hệ thống chưa
-    let nhanKhau = await NhanKhau.findOne({ 
-      canCuocCongDan: thongTinNguoiXin.canCuocCongDan 
-    });
-
-    // Kiểm tra người này đã trong hộ khẩu nào chưa
-    if (nhanKhau && nhanKhau.hoKhauId) {
-      return res.status(400).json({ 
-        success: false,
-        message: `Người này đã thuộc hộ khẩu ${nhanKhau.hoKhauId.soHoKhau || 'khác'}` 
-      });
-    }
-
+    // ← TẠO ĐƠN (KHÔNG GÁN nhanKhauId)
     const don = new DonXinVaoHo({
       hoKhauId,
-      chuHoId: req.user.nhanKhauId,
-      thongTinNguoiXin,
+      chuHoId: hoKhau.chuHo._id,
+      thongTinNguoiXin: {
+        hoTen: nguoiXin,
+        canCuocCongDan,
+        ngaySinh,
+        gioiTinh,
+        queQuan,
+        danToc,
+        tonGiao,
+        ngheNghiep,
+        noiLamViec,
+        soDienThoai
+      },
       quanHeVoiChuHo,
       lyDo,
-      nhanKhauId: nhanKhau?._id || null
+      nhanKhauId: null, // ← BỎ: existingNhanKhau?._id
+      nguoiTao: req.user._id,
+      trangThai: 'cho_duyet' // ← GIỮ TRẠNG THÁI (ĐỂ FILTER)
     });
 
     await don.save();
+    console.log('✅ [CREATE DON] Đơn created:', don._id);
+
+    // ← GỬI THÔNG BÁO
+    const admins = await User.find({ 
+      vaiTro: { $in: ['admin', 'to_truong'] },
+      trangThai: 'active'
+    });
+
+    const notificationMessage = `${nguoiXin} (${canCuocCongDan}) xin vào hộ ${hoKhau.soHoKhau} với vai trò: ${quanHeVoiChuHo}. Chủ hộ: ${hoKhau.chuHo.hoTen}`;
+
+    for (const admin of admins) {
+      await createNotification(
+        admin._id,
+        'info',
+        'Đơn xin vào hộ mới',
+        notificationMessage,
+        `/dashboard/donxinvaoho/${don._id}`
+      );
+    }
+
+    console.log(`📢 [CREATE DON] Sent notifications to ${admins.length} admins`);
 
     res.status(201).json({
       success: true,
       data: don,
-      message: 'Đã gửi đơn xin vào hộ. Vui lòng chờ tổ trưởng duyệt.'
+      message: existingNhanKhau?.hoKhauId
+        ? '⚠️ Đã gửi đơn. Lưu ý: CCCD này đã thuộc hộ khác, tổ trưởng sẽ xem xét.'
+        : '✅ Đã gửi đơn thành công! Tổ trưởng sẽ xem và thêm vào hộ khẩu.'
     });
   } catch (error) {
-    console.error('Create DonXinVaoHo error:', error);
+    console.error('❌ [CREATE DON] Error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -151,98 +210,7 @@ router.post('/', authenticate, authorize('chu_ho', 'admin', 'to_truong'), async 
   }
 });
 
-// PUT - Duyệt đơn (Chỉ Tổ trưởng/Admin)
-router.put('/:id/duyet', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
-  try {
-    const { trangThai, ghiChuDuyet } = req.body;
-
-    if (!['da_duyet', 'tu_choi'].includes(trangThai)) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Trạng thái không hợp lệ' 
-      });
-    }
-
-    const don = await DonXinVaoHo.findById(req.params.id)
-      .populate('hoKhauId')
-      .populate('chuHoId');
-
-    if (!don) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Không tìm thấy đơn' 
-      });
-    }
-
-    if (don.trangThai !== 'cho_duyet') {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Đơn này đã được xử lý' 
-      });
-    }
-
-    don.trangThai = trangThai;
-    don.nguoiDuyet = req.user._id;
-    don.ngayDuyet = new Date();
-    don.ghiChuDuyet = ghiChuDuyet;
-
-    // Nếu duyệt: Tạo hoặc cập nhật NhanKhau và thêm vào HoKhau
-    if (trangThai === 'da_duyet') {
-      let nhanKhau = don.nhanKhauId 
-        ? await NhanKhau.findById(don.nhanKhauId)
-        : null;
-
-      // Nếu chưa có NhanKhau, tạo mới
-      if (!nhanKhau) {
-        nhanKhau = new NhanKhau({
-          ...don.thongTinNguoiXin,
-          hoKhauId: don.hoKhauId._id,
-          quanHeVoiChuHo: don.quanHeVoiChuHo,
-          trangThai: 'active'
-        });
-        await nhanKhau.save();
-        don.nhanKhauId = nhanKhau._id;
-      } else {
-        // Cập nhật thông tin
-        nhanKhau.hoKhauId = don.hoKhauId._id;
-        nhanKhau.quanHeVoiChuHo = don.quanHeVoiChuHo;
-        await nhanKhau.save();
-      }
-
-      // Thêm vào danh sách thành viên hộ khẩu
-      const hoKhau = await HoKhau.findById(don.hoKhauId._id);
-      const daTonTai = hoKhau.thanhVien.some(tv => 
-        tv.nhanKhauId.toString() === nhanKhau._id.toString()
-      );
-
-      if (!daTonTai) {
-        hoKhau.thanhVien.push({
-          nhanKhauId: nhanKhau._id,
-          quanHeVoiChuHo: don.quanHeVoiChuHo
-        });
-        await hoKhau.save();
-      }
-    }
-
-    await don.save();
-
-    res.json({
-      success: true,
-      data: don,
-      message: trangThai === 'da_duyet' 
-        ? 'Đã duyệt đơn và thêm vào hộ khẩu' 
-        : 'Đã từ chối đơn'
-    });
-  } catch (error) {
-    console.error('Approve DonXinVaoHo error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: error.message 
-    });
-  }
-});
-
-// DELETE - Xóa đơn (Chỉ chủ hộ xóa đơn của mình và đơn chưa duyệt)
+// ========== DELETE (CHỈ XÓA ĐƠN CỦA MÌNH) ==========
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const don = await DonXinVaoHo.findById(req.params.id);
@@ -254,17 +222,11 @@ router.delete('/:id', authenticate, async (req, res) => {
       });
     }
 
-    // Chỉ cho phép xóa đơn chưa duyệt
-    if (don.trangThai !== 'cho_duyet') {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Chỉ có thể xóa đơn chưa duyệt' 
-      });
-    }
+    // ← CHỈ NGƯỜI TẠO HOẶC ADMIN MỚI XÓA ĐƯỢC
+    const isDonCuaMinh = don.nguoiTao.toString() === req.user._id.toString();
+    const isAdmin = ['admin', 'to_truong'].includes(req.user.vaiTro);
 
-    // Chủ hộ chỉ xóa đơn của mình
-    if (req.user.vaiTro === 'chu_ho' && 
-        don.chuHoId.toString() !== req.user.nhanKhauId.toString()) {
+    if (!isDonCuaMinh && !isAdmin) {
       return res.status(403).json({ 
         success: false,
         message: 'Bạn không có quyền xóa đơn này' 

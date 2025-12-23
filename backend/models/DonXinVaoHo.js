@@ -50,7 +50,8 @@ const DonXinVaoHoSchema = new mongoose.Schema({
     ref: 'NhanKhau'
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  strictPopulate: false
 });
 
 module.exports = mongoose.model('DonXinVaoHo', DonXinVaoHoSchema);
