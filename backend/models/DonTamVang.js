@@ -43,7 +43,11 @@ const DonTamVangSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  ngayXuLy: Date
+  ngayXuLy: Date,
+  lyDoTuChoi: {  // ← THÊM FIELD NÀY
+    type: String,
+    trim: true
+  }
 }, {
   timestamps: true
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { donTamTruAPIAPI, nhanKhauAPI } from '../../services/api';
+import { donTamTruAPI, nhanKhauAPI } from '../../services/api'; // ← SỬA: donTamTruAPIAPI → donTamTruAPI
 import { useAuth } from '../../context/AuthContext';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
@@ -45,13 +45,11 @@ export default function TamTruForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate
     if (!formData.nhanKhauId || !formData.diaChiTamTru || !formData.tuNgay || !formData.denNgay || !formData.lyDo) {
       alert('⚠️ Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
-    // Kiểm tra ngày
     if (new Date(formData.denNgay) <= new Date(formData.tuNgay)) {
       alert('⚠️ Ngày kết thúc phải sau ngày bắt đầu');
       return;
@@ -61,7 +59,7 @@ export default function TamTruForm() {
       setLoading(true);
       await donTamTruAPI.create(formData);
       alert('✅ Đã gửi đơn tạm trú thành công! Tổ trưởng sẽ xem xét và thêm vào danh sách.');
-      navigate('/dashboard/tamtru');
+      navigate('/dashboard/don-tam-tru'); // ← SỬA: /tamtru → /don-tam-tru
     } catch (error) {
       console.error('Submit error:', error);
       alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
@@ -77,7 +75,7 @@ export default function TamTruForm() {
         pageTitle="Đăng ký tạm trú"
         items={[
           { label: 'Dashboard', path: '/dashboard' },
-          { label: 'Tạm trú', path: '/dashboard/tamtru' },
+          { label: 'Đơn Tạm trú', path: '/dashboard/don-tam-tru' },
           { label: 'Đăng ký mới' }
         ]}
       />
@@ -216,8 +214,8 @@ export default function TamTruForm() {
               <div className="text-sm text-yellow-800 dark:text-yellow-400">
                 <p className="font-semibold mb-1">Lưu ý:</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>Đơn tạm trú chỉ là <strong>thông tin tham khảo</strong></li>
-                  <li>Tổ trưởng sẽ xem và <strong>tự thêm vào danh sách tạm trú</strong></li>
+                  <li>Đơn sẽ được gửi đến tổ trưởng để xét duyệt</li>
+                  <li>Sau khi duyệt, thông tin sẽ được thêm vào danh sách tạm trú chính thức</li>
                   <li>Thời gian tạm trú phải từ 1 ngày trở lên</li>
                 </ul>
               </div>
@@ -228,7 +226,7 @@ export default function TamTruForm() {
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
             <button
               type="button"
-              onClick={() => navigate('/dashboard/tamtru')}
+              onClick={() => navigate('/dashboard/don-tam-tru')}
               className="px-6 py-3 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all font-medium"
             >
               Hủy

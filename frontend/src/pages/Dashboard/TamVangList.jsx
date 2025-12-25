@@ -8,32 +8,33 @@ import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 export default function TamVangList() {
   const navigate = useNavigate();
   const { user, canAccess } = useAuth();
-  const [dons, setDons] = useState([]);
+  const [tamVangs, setTamVangs] = useState([]); // ← SỬA: dons → tamVangs
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDons();
+    fetchTamVangs(); // ← SỬA: fetchDons → fetchTamVangs
   }, []);
 
-  const fetchDons = async () => {
+  const fetchTamVangs = async () => { // ← SỬA: Đổi tên hàm
     try {
       setLoading(true);
-      const response = await tamVangAPI.getAll();
-      setDons(response.data.data || []);
+      const response = await tamVangAPI.getAll({ trangThai: 'da_duyet', limit: 1000 });
+      setTamVangs(response.data.data || response.data || []);
     } catch (error) {
-      console.error('Error fetching tạm vắng:', error);
+      console.error('Fetch error:', error);
+      alert('❌ Lỗi tải dữ liệu');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('❓ Xác nhận xóa đơn tạm vắng này?')) return;
+    if (!confirm('❓ Xác nhận xóa tạm vắng này?')) return;
 
     try {
       await tamVangAPI.delete(id);
-      alert('✅ Đã xóa đơn');
-      fetchDons();
+      alert('✅ Đã xóa');
+      fetchTamVangs(); // ← SỬA: fetchDons → fetchTamVangs
     } catch (error) {
       console.error('Delete error:', error);
       alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
@@ -66,34 +67,36 @@ export default function TamVangList() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Danh sách tạm vắng
+                  Danh sách người Tạm vắng
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Tổ trưởng xem thông tin và tự thêm vào danh sách
+                  {canAccess(['admin', 'to_truong']) ? 'Quản lý người tạm vắng' : 'Danh sách tạm vắng của bạn'}
                 </p>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard/tamvang/create')}
-              className="px-6 py-3 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-lg hover:from-rose-600 hover:to-red-600 transition-all shadow-lg font-medium flex items-center gap-2 justify-center"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Đăng ký tạm vắng
-            </button>
+            {canAccess(['admin', 'to_truong', 'ke_toan']) && (
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/tamvang/create')}
+                className="px-6 py-3 bg-gradient-to-r from-rose-500 to-red-500 text-white rounded-lg hover:from-rose-600 hover:to-red-600 transition-all shadow-lg font-medium flex items-center gap-2 justify-center"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Thêm tạm vắng
+              </button>
+            )}
           </div>
         </div>
 
         {/* TABLE */}
         <div className="p-6">
-          {dons.length === 0 ? (
+          {tamVangs.length === 0 ? (
             <div className="py-16 text-center">
               <div className="text-6xl mb-4">✈️</div>
               <p className="text-gray-500 dark:text-gray-400 text-lg">
-                Chưa có đơn tạm vắng nào
+                Chưa có người tạm vắng nào
               </p>
             </div>
           ) : (
@@ -101,72 +104,54 @@ export default function TamVangList() {
               <table className="w-full">
                 <thead className="border-b-2 border-gray-200 dark:border-gray-800">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Người đăng ký
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      CCCD
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Nơi đến
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Thời gian
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Trạng thái
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Thao tác
-                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STT</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Người tạm vắng</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">CCCD</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Nơi đến</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Thời gian</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Trạng thái</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {dons.map((don) => (
+                  {tamVangs.map((tamVang, index) => (
                     <tr 
-                      key={don._id}
-                      className="hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/dashboard/tamvang/${don._id}`)}
+                      key={tamVang._id}
+                      className="hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors"
                     >
+                      <td className="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                        {index + 1}
+                      </td>
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                        {don.nhanKhauId?.hoTen || 'N/A'}
+                        {tamVang.nhanKhauId?.hoTen || 'N/A'}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {don.nhanKhauId?.canCuocCongDan || 'N/A'}
+                        {tamVang.nhanKhauId?.canCuocCongDan || 'N/A'}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
-                        {don.noiDen}
+                        {tamVang.noiDen}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(don.tuNgay).toLocaleDateString('vi-VN')} 
-                        {' → '} 
-                        {new Date(don.denNgay).toLocaleDateString('vi-VN')}
+                        <div>{new Date(tamVang.tuNgay).toLocaleDateString('vi-VN')}</div>
+                        <div className="text-xs">→ {new Date(tamVang.denNgay).toLocaleDateString('vi-VN')}</div>
                       </td>
                       <td className="px-4 py-4 text-sm">
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                          Chờ xử lý
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          ✅ Đã duyệt
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/dashboard/tamvang/${don._id}`);
-                            }}
+                            onClick={() => navigate(`/dashboard/tamvang/${tamVang._id}`)}
                             className="text-rose-600 hover:text-rose-700 dark:text-rose-400 font-medium"
                           >
-                            Xem →
+                            Xem chi tiết →
                           </button>
 
-                          {(don.nhanKhauId?._id === user?.nhanKhauId?._id || 
-                            don.nhanKhauId?._id === user?.nhanKhauId || 
-                            canAccess('admin', 'to_truong')) && (
+                          {canAccess(['admin', 'to_truong']) && (
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(don._id);
-                              }}
+                              onClick={() => handleDelete(tamVang._id)}
                               className="text-red-600 hover:text-red-700 dark:text-red-400"
                             >
                               Xóa

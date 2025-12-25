@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
-import { tamTruAPI, nhanKhauAPI } from '../../services/api';
+import { donTamTruAPI, nhanKhauAPI } from '../../services/api';
 
 export default function TamTruForm() {
   const navigate = useNavigate();
@@ -40,13 +40,24 @@ export default function TamTruForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!formData.nhanKhauId || !formData.diaChiTamTru || !formData.tuNgay || !formData.denNgay || !formData.lyDo) {
+      alert('⚠️ Vui lòng điền đầy đủ thông tin bắt buộc');
+      return;
+    }
+
+    if (new Date(formData.denNgay) <= new Date(formData.tuNgay)) {
+      alert('⚠️ Ngày kết thúc phải sau ngày bắt đầu');
+      return;
+    }
+
     try {
       setLoading(true);
-      await tamTruAPI.create(formData);
-      alert('✅ Tạo đơn tạm trú thành công!');
+      await donTamTruAPI.create(formData); // ← SỬA API
+      alert('✅ Đã gửi đơn tạm trú thành công! Vui lòng chờ tổ trưởng duyệt.');
       navigate('/dashboard/tamtru');
     } catch (error) {
+      console.error('Submit error:', error);
       alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);

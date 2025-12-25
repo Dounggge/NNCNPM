@@ -41,14 +41,51 @@ const navItems = [
     path: "/dashboard/nhankhau",
     allowedRoles: ['admin', 'to_truong', 'ke_toan', 'chu_ho'],
   },
+  // ← SỬA PHẦN NÀY: TÁCH THÀNH 2 MENU RIÊNG BIỆT
   {
-    icon: <CalenderIcon />,
-    name: "Tạm trú/Tạm vắng",
-    allowedRoles: ['admin', 'to_truong', 'ke_toan'],
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+    name: "Tạm trú",
+    allowedRoles: ['admin', 'to_truong'],
     subItems: [
-      { name: "Tổng quan", path: "/dashboard/tamtru-tamvang", pro: false }, 
-      { name: "Danh sách Tạm trú", path: "/dashboard/tamtru", pro: false }, 
-      { name: "Danh sách Tạm vắng", path: "/dashboard/tamvang", pro: false }, 
+      { 
+        name: "Danh sách người Tạm trú", 
+        path: "/dashboard/tamtru", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong']
+      },
+      { 
+        name: "Đơn xin Tạm trú", 
+        path: "/dashboard/don-tam-tru", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong']
+      },
+    ],
+  },
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+    ),
+    name: "Tạm vắng",
+    allowedRoles: ['admin', 'to_truong'],
+    subItems: [
+      { 
+        name: "Danh sách người Tạm vắng", 
+        path: "/dashboard/tamvang", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong', 'ke_toan']
+      },
+      { 
+        name: "Đơn xin Tạm vắng", 
+        path: "/dashboard/don-tam-vang", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong']
+      },
     ],
   },
   {
@@ -241,7 +278,13 @@ const AppSidebar = () => {
               }}
             >
               <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
+                {nav.subItems
+                  .filter(subItem => {
+                    // ← THÊM FILTER CHO SUBITEMS
+                    if (subItem.allowedRoles && !subItem.allowedRoles.includes(user?.vaiTro)) return false;
+                    return true;
+                  })
+                  .map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}

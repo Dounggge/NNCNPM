@@ -21,8 +21,8 @@ const nhanKhauRoutes = require('./routes/NhanKhauRoutes');
 const hoKhauRoutes = require('./routes/HoKhauRoutes');
 const tamTruRoutes = require('./routes/TamTruRoutes');
 const tamVangRoutes = require('./routes/TamVangRoutes');
-const donTamTruRoutes = require('./routes/DonTamTruRoutes'); // ⭐ MỚI
-const donTamVangRoutes = require('./routes/DonTamVangRoutes'); // ⭐ MỚI
+const donTamTruRoutes = require('./routes/DonTamTruRoutes'); 
+const donTamVangRoutes = require('./routes/DonTamVangRoutes'); 
 const khoanThuRoutes = require('./routes/KhoanThuRoutes');
 const phieuThuRoutes = require('./routes/PhieuThuRoutes');
 const donXinVaoHoRoutes = require('./routes/DonXinVaoHoRoutes');
@@ -35,10 +35,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/nhankhau', nhanKhauRoutes);
 app.use('/api/hokhau', hoKhauRoutes);
-app.use('/api/tamtru', tamTruRoutes); // Danh sách chính thức
-app.use('/api/tamvang', tamVangRoutes); // Danh sách chính thức
-app.use('/api/don-tamtru', donTamTruRoutes); // ⭐ Đơn đăng ký
-app.use('/api/don-tamvang', donTamVangRoutes); // ⭐ Đơn đăng ký
+app.use('/api/tamtru', tamTruRoutes); 
+app.use('/api/tamvang', tamVangRoutes); 
+app.use('/api/don-tam-tru', donTamTruRoutes); 
+app.use('/api/don-tam-vang', donTamVangRoutes); 
 app.use('/api/khoanthu', khoanThuRoutes);
 app.use('/api/phieuthu', phieuThuRoutes);
 app.use('/api/donxinvaoho', donXinVaoHoRoutes);

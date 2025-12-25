@@ -61,7 +61,7 @@ export default function TamVangForm() {
       setLoading(true);
       await donTamVangAPI.create(formData);
       alert('✅ Đã gửi đơn tạm vắng thành công! Tổ trưởng sẽ xem xét và thêm vào danh sách.');
-      navigate('/dashboard/tamvang');
+      navigate('/dashboard/don-tam-vang');
     } catch (error) {
       console.error('Submit error:', error);
       alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));

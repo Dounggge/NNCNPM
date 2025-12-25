@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
-import { tamVangAPI, nhanKhauAPI } from '../../services/api';
+import { donTamVangAPI, nhanKhauAPI } from '../../services/api';
 
 export default function TamVangForm() {
   const navigate = useNavigate();
@@ -40,13 +40,24 @@ export default function TamVangForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!formData.nhanKhauId || !formData.noiDen || !formData.tuNgay || !formData.denNgay || !formData.lyDo) {
+      alert('⚠️ Vui lòng điền đầy đủ thông tin bắt buộc');
+      return;
+    }
+
+    if (new Date(formData.denNgay) <= new Date(formData.tuNgay)) {
+      alert('⚠️ Ngày về phải sau ngày đi');
+      return;
+    }
+
     try {
       setLoading(true);
-      await tamVangAPI.create(formData);
-      alert('✅ Tạo đơn tạm vắng thành công!');
+      await donTamVangAPI.create(formData); // ← SỬA API
+      alert('✅ Đã gửi đơn tạm vắng thành công! Vui lòng chờ tổ trưởng duyệt.');
       navigate('/dashboard/tamvang');
     } catch (error) {
+      console.error('Submit error:', error);
       alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);

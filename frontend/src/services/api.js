@@ -82,20 +82,21 @@ export const tamVangAPI = {
 
 // ⭐ ========== ĐƠN TẠM TRÚ (ĐƠN ĐĂNG KÝ) ========== ⭐
 export const donTamTruAPI = {
-  getAll: (params) => api.get('/don-tamtru', { params }),
-  getById: (id) => api.get(`/don-tamtru/${id}`),
-  create: (data) => api.post('/don-tamtru', data),
-  markAsProcessed: (id) => api.patch(`/don-tamtru/${id}/xu-ly`),
-  delete: (id) => api.delete(`/don-tamtru/${id}`)
+  getAll: (params) => api.get('/don-tam-tru', { params }),
+  getById: (id) => api.get(`/don-tam-tru/${id}`),
+  create: (data) => api.post('/don-tam-tru', data),
+  approve: (id) => api.post(`/don-tam-tru/${id}/approve`),
+  reject: (id, data) => api.post(`/don-tam-tru/${id}/reject`, data),
+  delete: (id) => api.delete(`/don-tam-tru/${id}`)
 };
 
-// ⭐ ========== ĐƠN TẠM VẮNG (ĐƠN ĐĂNG KÝ) ========== ⭐
 export const donTamVangAPI = {
-  getAll: (params) => api.get('/don-tamvang', { params }),
-  getById: (id) => api.get(`/don-tamvang/${id}`),
-  create: (data) => api.post('/don-tamvang', data),
-  markAsProcessed: (id) => api.patch(`/don-tamvang/${id}/xu-ly`),
-  delete: (id) => api.delete(`/don-tamvang/${id}`)
+  getAll: (params) => api.get('/don-tam-vang', { params }),
+  getById: (id) => api.get(`/don-tam-vang/${id}`),
+  create: (data) => api.post('/don-tam-vang', data),
+  approve: (id) => api.post(`/don-tam-vang/${id}/approve`),
+  reject: (id, data) => api.post(`/don-tam-vang/${id}/reject`, data),
+  delete: (id) => api.delete(`/don-tam-vang/${id}`)
 };
 
 // ========== KHOẢN THU ==========

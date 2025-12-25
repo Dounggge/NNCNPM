@@ -43,7 +43,11 @@ const DonTamTruSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  ngayXuLy: Date
+  ngayXuLy: Date,
+  lyDoTuChoi: {  
+    type: String,
+    trim: true
+  }
 }, {
   timestamps: true
 });

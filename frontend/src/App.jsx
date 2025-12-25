@@ -15,7 +15,11 @@ import KhoanThuList from "./pages/Dashboard/KhoanThuList";
 import PhieuThuList from "./pages/Dashboard/PhieuThuList";
 import UserList from "./pages/Dashboard/UserList";
 import DonXinVaoHoList from './pages/Dashboard/DonXinVaoHoList';
+import DonTamTruList from './pages/Dashboard/DonTamTruList';
+import DonTamVangList from './pages/Dashboard/DonTamVangList';
 import NotificationList from './pages/Dashboard/NotificationList';
+import DonTamTruDetail from './pages/Dashboard/DonTamTruDetail'; // ← THÊM
+import DonTamVangDetail from './pages/Dashboard/DonTamVangDetail'; // ← THÊM
 
 // FORMS
 import KhoanThuForm from "./pages/Forms/KhoanThuForm";
@@ -91,6 +95,14 @@ function App() {
               <Route path="donxinvaoho" element={<DonXinVaoHoList />} />
               <Route path="donxinvaoho/create" element={<DonXinVaoHoForm />} />
               <Route path="donxinvaoho/:id" element={<DonXinVaoHoDetail />} />
+
+              {/* ĐƠN TẠM TRÚ */}
+              <Route path="don-tam-tru" element={<DonTamTruList />} />
+              <Route path="don-tam-tru/:id" element={<DonTamTruDetail />} />
+
+              {/* ĐƠN TẠM VẮNG */}
+              <Route path="don-tam-vang" element={<DonTamVangList />} />
+              <Route path="don-tam-vang/:id" element={<DonTamVangDetail />} />
 
               {/* PHẢN HỒI */}
               <Route path="feedback" element={<FeedbackForm />} />
