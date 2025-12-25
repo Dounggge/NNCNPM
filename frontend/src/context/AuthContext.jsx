@@ -29,6 +29,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ⭐ HÀM MỚI: REFRESH USER (GỌI LẠI API ĐỂ CẬP NHẬT VAI TRÒ)
+  const refreshUser = async () => {
+    try {
+      const response = await authAPI.getMe();
+      const userData = response.data.data;
+      console.log('🔄 User refreshed:', userData);
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      console.error('❌ Refresh user error:', error);
+      throw error;
+    }
+  };
+
   const updateUser = (newUserData) => {
     console.log('🔄 Updating user:', newUserData);
     setUser(newUserData);
@@ -119,12 +133,13 @@ export const AuthProvider = ({ children }) => {
       user, 
       loading, 
       isAdmin,
-      hasPermission,  // ← EXPORT hasPermission
-      canAccess,      // ← EXPORT canAccess
+      hasPermission,
+      canAccess,
       login, 
       logout, 
       updateUser,
-      fetchUser 
+      fetchUser,
+      refreshUser // ⭐ THÊM VÀO ĐÂY
     }}>
       {children}
     </AuthContext.Provider>

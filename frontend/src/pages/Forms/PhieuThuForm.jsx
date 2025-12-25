@@ -57,24 +57,39 @@ export default function PhieuThuForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.cacKhoanThu.length === 0) {
-      alert('⚠️ Vui lòng chọn ít nhất 1 khoản thu');
-      return;
-    }
+  e.preventDefault();
 
-    try {
-      setLoading(true);
-      await phieuThuAPI.create(formData);
-      alert('✅ Tạo phiếu thu thành công!');
-      navigate('/dashboard/phieuthu');
-    } catch (error) {
-      alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!formData.hoKhauId) {
+    alert('⚠️ Chưa chọn hộ khẩu');
+    return;
+  }
+
+  if (formData.cacKhoanThu.length === 0) {
+    alert('⚠️ Vui lòng chọn ít nhất 1 khoản thu');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // CHỖ QUAN TRỌNG
+    await Promise.all(
+      formData.cacKhoanThu.map(khoanThuId =>
+        phieuThuAPI.create({
+          hoKhauId: formData.hoKhauId,
+          khoanThuId
+        })
+      )
+    );
+
+    alert('✅ Tạo phiếu thu thành công!');
+    navigate('/dashboard/phieuthu');
+  } catch (error) {
+    alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
+  } finally {
+    setLoading(false);
+  }
+};
 
   const tongTien = khoanThus
     .filter(kt => formData.cacKhoanThu.includes(kt._id))

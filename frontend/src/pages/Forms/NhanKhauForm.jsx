@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
-import { nhanKhauAPI } from '../../services/api';
+import { nhanKhauAPI, userAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function NhanKhauForm() {
   const { id } = useParams();
@@ -24,7 +25,11 @@ export default function NhanKhauForm() {
     soDienThoai: '',
     email: ''
   });
-
+  const [role, setRole] = useState('dan_cu');
+  const [originalRole, setOriginalRole] = useState('dan_cu'); // ⭐ LƯU VAI TRÒ BAN ĐẦU
+  const [userId, setUserId] = useState(null);
+  const { user: currentUser, canAccess, refreshUser } = useAuth(); // ⭐ THÊM refreshUser
+  
   const isEditMode = !!id;
 
   useEffect(() => {
@@ -36,7 +41,8 @@ export default function NhanKhauForm() {
   const fetchNhanKhau = async () => {
     try {
       const response = await nhanKhauAPI.getById(id);
-      const data = response.data;
+      const data = response.data.data;
+
       setFormData({
         hoTen: data.hoTen || '',
         ngaySinh: data.ngaySinh ? data.ngaySinh.split('T')[0] : '',
@@ -53,8 +59,21 @@ export default function NhanKhauForm() {
         soDienThoai: data.soDienThoai || '',
         email: data.email || ''
       });
+
+      // ⭐ LẤY USER + ROLE
+      if (data.userId) {
+        const userIdValue = data.userId._id || data.userId;
+        const userRole = data.userId.vaiTro || 'dan_cu';
+        
+        setUserId(userIdValue);
+        setRole(userRole);
+        setOriginalRole(userRole); // ⭐ LƯU VAI TRÒ BAN ĐẦU
+        
+        console.log('📌 Loaded user:', { userId: userIdValue, role: userRole });
+      }
     } catch (error) {
-      alert('❌ Lỗi tải dữ liệu: ' + error.message);
+      console.error('❌ Fetch error:', error);
+      alert('❌ Lỗi tải dữ liệu: ' + (error.response?.data?.message || error.message));
       navigate('/dashboard/nhankhau');
     }
   };
@@ -69,21 +88,86 @@ export default function NhanKhauForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setLoading(true);
+
     try {
-      setLoading(true);
-      
-      if (isEditMode) {
-        await nhanKhauAPI.update(id, formData);
-        alert('✅ Cập nhật nhân khẩu thành công!');
+      console.log('📝 Submitting form...');
+
+      // ========== 1. LƯU NHÂN KHẨU ==========
+      const res = isEditMode
+        ? await nhanKhauAPI.update(id, formData)
+        : await nhanKhauAPI.create(formData);
+
+      const nhanKhau = res.data.data;
+      console.log('✅ Saved NhanKhau:', nhanKhau._id);
+
+      // ========== 2. XỬ LÝ VAI TRÒ (ADMIN/TỔ TRƯỞNG) ==========
+      if (canAccess(['admin', 'to_truong'])) {
+        if (userId) {
+          // ← CÓ USER RỒI → CẬP NHẬT VAI TRÒ (NẾU THAY ĐỔI)
+          if (role !== originalRole) {
+            console.log('🔄 Updating role:', { userId, oldRole: originalRole, newRole: role });
+
+            try {
+              const roleResponse = await userAPI.updateRole(userId, { vaiTro: role });
+              console.log('✅ Role updated:', roleResponse.data);
+
+              // ⭐ NẾU SỬA CHÍNH MÌNH → REFRESH CONTEXT
+              if (userId === currentUser?._id) {
+                console.log('🔄 Refreshing current user...');
+                await refreshUser();
+                alert(`✅ Cập nhật thành công! Vai trò của bạn đã thay đổi thành "${role}".`);
+              } else {
+                alert('✅ Cập nhật thành công!');
+              }
+            } catch (roleError) {
+              console.error('❌ Role update error:', roleError);
+              alert('⚠️ Cập nhật nhân khẩu thành công nhưng lỗi khi cập nhật vai trò: ' + 
+                    (roleError.response?.data?.message || roleError.message));
+            }
+          } else {
+            console.log('ℹ️ Role không thay đổi, bỏ qua update');
+            alert('✅ Cập nhật thành công!');
+          }
+        } else {
+          // ← CHƯA CÓ USER → TẠO USER MỚI
+          console.log('🆕 Creating new user with role:', role);
+
+          try {
+            const createUserResponse = await fetch('/api/users/create-from-nhankhau', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify({
+                nhanKhauId: nhanKhau._id,
+                vaiTro: role
+              })
+            });
+
+            if (!createUserResponse.ok) {
+              const errorData = await createUserResponse.json();
+              throw new Error(errorData.message || 'Lỗi tạo tài khoản');
+            }
+
+            const newUser = await createUserResponse.json();
+            console.log('✅ Created user:', newUser.data);
+            alert(`✅ Đã tạo tài khoản mới với vai trò "${role}"!`);
+          } catch (createUserError) {
+            console.error('❌ Create user error:', createUserError);
+            alert('⚠️ Cập nhật nhân khẩu thành công nhưng lỗi khi tạo tài khoản: ' + createUserError.message);
+          }
+        }
       } else {
-        await nhanKhauAPI.create(formData);
-        alert('✅ Tạo nhân khẩu thành công!');
+        // ← KHÔNG PHẢI ADMIN/TỔ TRƯỞNG → CHỈ LƯU NHÂN KHẨU
+        alert('✅ Cập nhật thành công!');
       }
-      
+
       navigate('/dashboard/nhankhau');
-    } catch (error) {
-      alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
+    } catch (err) {
+      console.error('❌ Submit error:', err);
+      alert('❌ Lỗi: ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -322,19 +406,65 @@ export default function NhanKhauForm() {
               </div>
             </div>
 
+            {/* ========== VAI TRÒ (CHỈ ADMIN/TỔ TRƯỞNG) ========== */}
+            {canAccess(['admin', 'to_truong']) && (
+              <div>
+                <h4 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                  🔐 Vai trò tài khoản
+                </h4>
+
+                {!userId && (
+                  <p className="mb-2 text-sm text-yellow-600 dark:text-yellow-400">
+                    ⚠️ Nhân khẩu này chưa có tài khoản. Hệ thống sẽ tạo tài khoản khi lưu.
+                  </p>
+                )}
+
+                {userId && role !== originalRole && (
+                  <p className="mb-2 text-sm text-blue-600 dark:text-blue-400">
+                    ℹ️ Vai trò sẽ được cập nhật từ "<strong>{originalRole}</strong>" → "<strong>{role}</strong>"
+                  </p>
+                )}
+
+                {userId === currentUser?._id && (
+                  <p className="mb-2 text-sm text-red-600 dark:text-red-400">
+                    ⚠️ Đây là tài khoản của bạn. Bạn không thể tự thay đổi vai trò của mình.
+                  </p>
+                )}
+
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Vai trò
+                </label>
+
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  disabled={userId === currentUser?._id} // ⭐ KHÔNG CHO TỰ ĐỔI
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                >
+                  <option value="dan_cu">👤 Dân cư</option>
+                  <option value="chu_ho">🏠 Chủ hộ</option>
+                  <option value="ke_toan">💰 Kế toán</option>
+                  <option value="to_truong">🏘️ Tổ trưởng</option>
+                  {currentUser?.vaiTro === 'admin' && (
+                    <option value="admin">👑 Admin</option>
+                  )}
+                </select>
+              </div>
+            )}
+
             {/* BUTTONS */}
             <div className="flex justify-end gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
               <button
                 type="button"
                 onClick={() => navigate('/dashboard/nhankhau')}
-                className="rounded-lg border border-gray-300 px-6 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                className="rounded-lg border border-gray-300 px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 Hủy
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Đang xử lý...' : (isEditMode ? '✅ Cập nhật' : '✅ Tạo mới')}
               </button>

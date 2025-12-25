@@ -12,10 +12,10 @@ export default function KhoanThuForm() {
     tenKhoanThu: '',
     loaiKhoanThu: 'bat_buoc',
     donGia: '',
-    donVi: 'VND/tháng',
-    moTa: '',
+    donVi: 'VND/thang',
     batDau: '',
-    ketThuc: ''
+    ketThuc: '',
+    moTa: '',
   });
 
   const isEditMode = !!id;
@@ -34,7 +34,7 @@ export default function KhoanThuForm() {
         tenKhoanThu: data.tenKhoanThu || '',
         loaiKhoanThu: data.loaiKhoanThu || 'bat_buoc',
         donGia: data.donGia || '',
-        donVi: data.donVi || 'VND/tháng',
+        donVi: data.donVi || 'VND/thang',
         moTa: data.moTa || '',
         batDau: data.batDau ? data.batDau.split('T')[0] : '',
         ketThuc: data.ketThuc ? data.ketThuc.split('T')[0] : ''
@@ -148,10 +148,10 @@ export default function KhoanThuForm() {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="VND/tháng">VND/tháng</option>
-                  <option value="VND/m²">VND/m²</option>
-                  <option value="VND/người">VND/người</option>
-                  <option value="VND/lần">VND/lần</option>
+                  <option value="VND/thang">VNĐ/tháng</option>
+                  <option value="VND/V">VNĐ/m²</option>
+                  <option value="VND/nguoi">VNĐ/người</option>
+                  <option value="VND/lan">VNĐ/lần</option>
                 </select>
               </div>
 
@@ -162,6 +162,7 @@ export default function KhoanThuForm() {
                 <input
                   type="date"
                   name="batDau"
+                  required
                   value={formData.batDau}
                   onChange={handleChange}
                   className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"

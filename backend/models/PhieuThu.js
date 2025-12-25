@@ -4,7 +4,7 @@ const phieuThuSchema = new mongoose.Schema({
   maPhieuThu: {
     type: String,
     unique: true,
-    required: true
+    // ← XÓA: required: true (vì sẽ tự động generate)
   },
   hoKhauId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -21,25 +21,28 @@ const phieuThuSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  ngayDong: Date,
   trangThai: {
     type: String,
-    enum: ['Chưa đóng', 'Đã đóng', 'Quá hạn'],
+    enum: ['Chưa đóng', 'Đã đóng'],
     default: 'Chưa đóng'
   },
+  ngayDong: { type: Date },
   nguoiThuTien: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
-// Auto-generate maPhieuThu
-phieuThuSchema.pre('save', async function(next) {
+// ⭐ SỬA: Auto-generate maPhieuThu TRƯỚC KHI VALIDATE
+phieuThuSchema.pre('validate', async function(next) {
   if (!this.maPhieuThu) {
-    const count = await mongoose.model('PhieuThu').countDocuments();
-    this.maPhieuThu = `PT${String(count + 1).padStart(6, '0')}`;
+    try {
+      const count = await mongoose.model('PhieuThu').countDocuments();
+      this.maPhieuThu = `PT${String(count + 1).padStart(6, '0')}`;
+      console.log(`✅ Generated maPhieuThu: ${this.maPhieuThu}`);
+    } catch (error) {
+      console.error('❌ Error generating maPhieuThu:', error);
+    }
   }
   next();
 });
