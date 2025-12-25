@@ -127,7 +127,8 @@ router.get('/', authenticate, async (req, res) => {
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findById(req.params.id)
-      .populate('hoKhauId', 'soHoKhau diaChiThuongTru');
+      .populate('hoKhauId', 'soHoKhau')
+      .populate('userId', 'userName vaiTro');
 
     if (!nhanKhau) {
       return res.status(404).json({ 

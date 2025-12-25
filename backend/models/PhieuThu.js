@@ -21,19 +21,17 @@ const phieuThuSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  ngayDong: Date,
   trangThai: {
     type: String,
-    enum: ['Chưa đóng', 'Đã đóng', 'Quá hạn'],
+    enum: ['Chưa đóng', 'Đã đóng'],
     default: 'Chưa đóng'
   },
+  ngayDong: { type: Date },
   nguoiThuTien: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }
-}, {
-  timestamps: true
-});
+},{ timestamps: true });
 
 // Auto-generate maPhieuThu
 phieuThuSchema.pre('save', async function(next) {

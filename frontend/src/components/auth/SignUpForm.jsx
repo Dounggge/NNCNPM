@@ -59,7 +59,7 @@ export default function SignUpForm() {
       
       // Auto login after register
       const loginResponse = await authAPI.login({
-        canCuocCongDan: formData.userName || formData.canCuocCongDan, // Use username if provided
+        canCuocCongDan: formData.canCuocCongDan, // Use username if provided
         password: formData.password
       });
       

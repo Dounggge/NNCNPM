@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import { nhanKhauAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function NhanKhauForm() {
   const { id } = useParams();
@@ -24,7 +25,11 @@ export default function NhanKhauForm() {
     soDienThoai: '',
     email: ''
   });
-
+  const [role, setRole] = useState('dan_cu');
+  const [userId, setUserId] = useState(null);
+  const { user: currentUser } = useAuth();
+  console.log('AUTH USER IN FORM:', currentUser);
+  
   const isEditMode = !!id;
 
   useEffect(() => {
@@ -33,31 +38,37 @@ export default function NhanKhauForm() {
     }
   }, [id]);
 
-  const fetchNhanKhau = async () => {
-    try {
-      const response = await nhanKhauAPI.getById(id);
-      const data = response.data;
-      setFormData({
-        hoTen: data.hoTen || '',
-        ngaySinh: data.ngaySinh ? data.ngaySinh.split('T')[0] : '',
-        gioiTinh: data.gioiTinh || 'Nam',
-        canCuocCongDan: data.canCuocCongDan || '',
-        ngayCapCCCD: data.ngayCapCCCD ? data.ngayCapCCCD.split('T')[0] : '',
-        noiCapCCCD: data.noiCapCCCD || '',
-        noiSinh: data.noiSinh || '',
-        queQuan: data.queQuan || '',
-        danToc: data.danToc || 'Kinh',
-        tonGiao: data.tonGiao || '',
-        ngheNghiep: data.ngheNghiep || '',
-        noiLamViec: data.noiLamViec || '',
-        soDienThoai: data.soDienThoai || '',
-        email: data.email || ''
-      });
-    } catch (error) {
-      alert('❌ Lỗi tải dữ liệu: ' + error.message);
-      navigate('/dashboard/nhankhau');
+const fetchNhanKhau = async () => {
+  try {
+    const response = await nhanKhauAPI.getById(id);
+    const data = response.data.data;
+
+    setFormData({
+      hoTen: data.hoTen || '',
+      ngaySinh: data.ngaySinh ? data.ngaySinh.split('T')[0] : '',
+      gioiTinh: data.gioiTinh || 'Nam',
+      canCuocCongDan: data.canCuocCongDan || '',
+      noiSinh: data.noiSinh || '',
+      queQuan: data.queQuan || '',
+      danToc: data.danToc || 'Kinh',
+      tonGiao: data.tonGiao || '',
+      ngheNghiep: data.ngheNghiep || '',
+      noiLamViec: data.noiLamViec || '',
+      soDienThoai: data.soDienThoai || '',
+      email: data.email || ''
+    });
+
+    // 👇 LẤY USER + ROLE
+    if (data.userId) {
+      setUserId(data.userId._id || data.userId);
+      setRole(data.userId.vaiTro || 'dan_cu');
     }
-  };
+  } catch (error) {
+    alert('❌ Lỗi tải dữ liệu');
+    navigate('/dashboard/nhankhau');
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,27 +78,59 @@ export default function NhanKhauForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      setLoading(true);
-      
-      if (isEditMode) {
-        await nhanKhauAPI.update(id, formData);
-        alert('✅ Cập nhật nhân khẩu thành công!');
+  //sửa handlesubmit có chấp nhận chỉnh role
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    // 1. Lưu nhân khẩu
+    const res = isEditMode
+      ? await nhanKhauAPI.update(id, formData)
+      : await nhanKhauAPI.create(formData);
+
+    const nhanKhau = res.data.data;
+
+    // 2. ADMIN xử lý USER + ROLE
+    if (currentUser?.vaiTro === 'admin' ||
+        currentUser?.vaiTro === 'to_truong'
+        ) {
+      if (userId) {
+        // đã có user → update role
+        await fetch(`/api/users/${userId}/role`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ vaiTro: role })
+        });
       } else {
-        await nhanKhauAPI.create(formData);
-        alert('✅ Tạo nhân khẩu thành công!');
+        // chưa có user → TẠO USER MỚI
+        await fetch(`/api/users/create-from-nhankhau`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            nhanKhauId: nhanKhau._id,
+            vaiTro: role
+          })
+        });
       }
-      
-      navigate('/dashboard/nhankhau');
-    } catch (error) {
-      alert('❌ Lỗi: ' + (error.response?.data?.message || error.message));
-    } finally {
-      setLoading(false);
     }
-  };
+
+    alert('✅ Lưu thành công');
+    navigate('/dashboard/nhankhau');
+  } catch (err) {
+    alert('❌ Lỗi: ' + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <>
@@ -321,6 +364,39 @@ export default function NhanKhauForm() {
                 </div>
               </div>
             </div>
+
+                {(currentUser?.vaiTro === 'admin' || currentUser?.vaiTro === 'to_truong') && (
+                  <div>
+                    <h4 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                      🔐 Vai trò tài khoản
+                    </h4>
+
+                    {!userId && (
+                      <p className="mb-2 text-sm text-yellow-500">
+                        ⚠ Nhân khẩu này chưa có tài khoản. Hệ thống sẽ tạo tài khoản khi lưu.
+                      </p>
+                    )}
+
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Vai trò
+                    </label>
+
+                    <select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="mt-1 w-full rounded-lg border px-4 py-2"
+                    >
+                      <option value="dan_cu">Dân cư</option>
+                      <option value="chu_ho">Chủ hộ</option>
+                      <option value="ke_toan">Kế toán</option>
+                      <option value="to_truong">Tổ trưởng</option>
+                      {currentUser?.vaiTro === 'admin' && (
+                      <option value="admin">Admin</option>
+                      )}
+                    </select>
+                  </div>
+                )}
+
 
             {/* BUTTONS */}
             <div className="flex justify-end gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">

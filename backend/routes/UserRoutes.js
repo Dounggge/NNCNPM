@@ -32,57 +32,71 @@ router.get('/', authenticate, authorize('admin', 'to_truong'), async (req, res) 
 });
 
 // UPDATE ROLE
-router.put('/:userId/role', authenticate, authorize('admin'), async (req, res) => {
+router.put('/:userId/role', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
   try {
     const { role, vaiTro } = req.body;
-    
-    // ← HỖ TRỢ CẢ `role` VÀ `vaiTro`
     const newRole = vaiTro || role;
-    
+
     if (!newRole) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'Thiếu vai trò' 
+        message: 'Thiếu vai trò'
       });
     }
 
-    const validRoles = ['admin', 'to_truong', 'ke_toan', 'chu_ho', 'dan_cu'];
-    if (!validRoles.includes(newRole)) {
-      return res.status(400).json({ 
+    // Phân quyền gắn vai trò
+    let allowedRoles = [];
+
+    if (req.user.vaiTro === 'admin') {
+      allowedRoles = ['admin', 'to_truong', 'ke_toan', 'chu_ho', 'dan_cu'];
+    }
+
+    if (req.user.vaiTro === 'to_truong') {
+      allowedRoles = ['dan_cu'];
+    }
+
+    if (!allowedRoles.includes(newRole)) {
+      return res.status(403).json({
         success: false,
-        message: 'Vai trò không hợp lệ' 
+        message: 'Bạn không có quyền gán vai trò này'
+      });
+    }
+
+    // Không tự đổi role
+    if (req.user._id.toString() === req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Không thể tự thay đổi vai trò của chính mình'
       });
     }
 
     const user = await User.findByIdAndUpdate(
       req.params.userId,
-      { vaiTro: newRole },  // ← LƯU VÀO `vaiTro`
+      { vaiTro: newRole },
       { new: true, runValidators: true }
     ).select('-password');
 
     if (!user) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'User không tồn tại' 
+        message: 'User không tồn tại'
       });
     }
-
-    console.log(`✅ Updated role: ${user.userName} → ${newRole}`);
 
     res.json({
       success: true,
       message: 'Cập nhật vai trò thành công',
       user: {
         ...user.toObject(),
-        role: user.vaiTro,      // ← TRẢ VỀ CẢ `role`
-        username: user.userName // ← TRẢ VỀ CẢ `username`
+        role: user.vaiTro,
+        username: user.userName
       }
     });
   } catch (error) {
     console.error('Update role error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: error.message 
+      message: error.message
     });
   }
 });

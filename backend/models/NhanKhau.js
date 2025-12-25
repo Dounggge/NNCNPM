@@ -22,7 +22,7 @@ const nhanKhauSchema = new mongoose.Schema({
   },
   gioiTinh: {
     type: String,
-    enum: ['Nam', 'Nữ', 'Nu', 'Khác'],
+    enum: ['Nam', 'Nữ'],
     required: true
   },
   noiSinh: String,

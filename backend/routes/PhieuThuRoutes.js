@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
 const PhieuThu = require('../models/PhieuThu');
+const KhoanThu = require('../models/KhoanThu');
 
 // GET /api/phieuthu - Lấy danh sách phiếu thu
 router.get('/', protect, async (req, res) => {
@@ -13,7 +14,8 @@ router.get('/', protect, async (req, res) => {
     
     const phieuThus = await PhieuThu.find(query)
       .populate('hoKhauId', 'soHoKhau diaChiThuongTru')
-      .populate('cacKhoanThu', 'tenKhoanThu donGia')
+      .populate('khoanThuId', 'tenKhoanThu donGia')
+      .populate('nguoiThuTien', 'hoTen')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort('-createdAt');
@@ -34,7 +36,30 @@ router.get('/', protect, async (req, res) => {
 // POST /api/phieuthu - Tạo phiếu thu
 router.post('/', protect, authorize('admin', 'to_truong', 'thu_quy'), async (req, res) => {
   try {
-    const phieuThu = await PhieuThu.create(req.body);
+      const { hoKhauId, khoanThuId } = req.body;
+
+      if (!hoKhauId || !khoanThuId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu hộ khẩu hoặc khoản thu'
+        });
+      }
+
+      const khoanThu = await KhoanThu.findById(khoanThuId);
+      if (!khoanThu) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy khoản thu'
+        });
+      }
+
+      const phieuThu = await PhieuThu.create({
+        hoKhauId,
+        khoanThuId,
+        soTien: khoanThu.soTien,
+        trangThai: 'Chưa đóng'
+      });
+
     res.status(201).json({ success: true, data: phieuThu });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -44,14 +69,14 @@ router.post('/', protect, authorize('admin', 'to_truong', 'thu_quy'), async (req
 // PUT /api/phieuthu/:id/paid - Đánh dấu đã thanh toán
 router.put('/:id/paid', protect, authorize('admin', 'to_truong', 'thu_quy'), async (req, res) => {
   try {
-    const { ngayThanhToan, hinhThucThanhToan } = req.body;
+    const { ngayDong, nguoiThuTien } = req.body;
     
     const phieuThu = await PhieuThu.findByIdAndUpdate(
       req.params.id,
       { 
-        trangThai: 'da_dong',
-        ngayThanhToan,
-        hinhThucThanhToan
+        trangThai: 'Đã đóng',
+        ngayDong: new Date(),
+        nguoiThuTien: req.user._id
       },
       { new: true, runValidators: true }
     );
