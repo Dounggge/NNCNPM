@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tamTruAPI, nhanKhauAPI } from '../../services/api';
+import { donTamTruAPIAPI, nhanKhauAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
@@ -59,7 +59,7 @@ export default function TamTruForm() {
 
     try {
       setLoading(true);
-      await tamTruAPI.create(formData);
+      await donTamTruAPI.create(formData);
       alert('✅ Đã gửi đơn tạm trú thành công! Tổ trưởng sẽ xem xét và thêm vào danh sách.');
       navigate('/dashboard/tamtru');
     } catch (error) {

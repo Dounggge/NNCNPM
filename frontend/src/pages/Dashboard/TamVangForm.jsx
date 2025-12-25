@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tamVangAPI, nhanKhauAPI } from '../../services/api';
+import { donTamVangAPI, nhanKhauAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
@@ -59,7 +59,7 @@ export default function TamVangForm() {
 
     try {
       setLoading(true);
-      await tamVangAPI.create(formData);
+      await donTamVangAPI.create(formData);
       alert('✅ Đã gửi đơn tạm vắng thành công! Tổ trưởng sẽ xem xét và thêm vào danh sách.');
       navigate('/dashboard/tamvang');
     } catch (error) {

@@ -59,23 +59,43 @@ export const hoKhauAPI = {
   removeMember: (id, memberId) => api.delete(`/hokhau/${id}/members/${memberId}`),
   approve: (id) => api.patch(`/hokhau/${id}/approve`),
   reject: (id, data) => api.patch(`/hokhau/${id}/reject`, data),
-    getAvailableForJoin: (params) => api.get('/hokhau/available-for-join', { params }),
+  getAvailableForJoin: (params) => api.get('/hokhau/available-for-join', { params }),
 };
 
-// ========== TẠM TRÚ ==========
+// ========== TẠM TRÚ (DANH SÁCH CHÍNH THỨC) ==========
 export const tamTruAPI = {
   getAll: (params) => api.get('/tamtru', { params }),
   getById: (id) => api.get(`/tamtru/${id}`),
   create: (data) => api.post('/tamtru', data),
+  update: (id, data) => api.put(`/tamtru/${id}`, data),
   delete: (id) => api.delete(`/tamtru/${id}`),
 };
 
-// ========== TẠM VẮNG ==========
+// ========== TẠM VẮNG (DANH SÁCH CHÍNH THỨC) ==========
 export const tamVangAPI = {
   getAll: (params) => api.get('/tamvang', { params }),
   getById: (id) => api.get(`/tamvang/${id}`),
   create: (data) => api.post('/tamvang', data),
+  update: (id, data) => api.put(`/tamvang/${id}`, data),
   delete: (id) => api.delete(`/tamvang/${id}`),
+};
+
+// ⭐ ========== ĐƠN TẠM TRÚ (ĐƠN ĐĂNG KÝ) ========== ⭐
+export const donTamTruAPI = {
+  getAll: (params) => api.get('/don-tamtru', { params }),
+  getById: (id) => api.get(`/don-tamtru/${id}`),
+  create: (data) => api.post('/don-tamtru', data),
+  markAsProcessed: (id) => api.patch(`/don-tamtru/${id}/xu-ly`),
+  delete: (id) => api.delete(`/don-tamtru/${id}`)
+};
+
+// ⭐ ========== ĐƠN TẠM VẮNG (ĐƠN ĐĂNG KÝ) ========== ⭐
+export const donTamVangAPI = {
+  getAll: (params) => api.get('/don-tamvang', { params }),
+  getById: (id) => api.get(`/don-tamvang/${id}`),
+  create: (data) => api.post('/don-tamvang', data),
+  markAsProcessed: (id) => api.patch(`/don-tamvang/${id}/xu-ly`),
+  delete: (id) => api.delete(`/don-tamvang/${id}`)
 };
 
 // ========== KHOẢN THU ==========
@@ -104,7 +124,7 @@ export const donXinVaoHoAPI = {
   delete: (id) => api.delete(`/donxinvaoho/${id}`)
 };
 
-// ========== USER ========== ← THÊM MỚI
+// ========== USER ==========
 export const userAPI = {
   getAllUsers: () => api.get('/users'),
   getUserById: (id) => api.get(`/users/${id}`),

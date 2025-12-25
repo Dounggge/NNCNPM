@@ -204,76 +204,127 @@ router.post('/', authenticate, async (req, res) => {
   try {
     const { soHoKhau, chuHoId, diaChiThuongTru, ngayLap, trangThai } = req.body;
 
-    console.log('📝 [POST /] Creating hộ khẩu:', { soHoKhau, chuHoId });
+    console.log('📝 [POST /] Received data:', { 
+      soHoKhau, 
+      chuHoId, 
+      diaChiThuongTru,
+      user: req.user._id 
+    });
 
+    // ← VALIDATE DỮ LIỆU ĐẦU VÀO
+    if (!soHoKhau || !chuHoId || !diaChiThuongTru) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Thiếu thông tin bắt buộc: Số hộ khẩu, Chủ hộ, Địa chỉ' 
+      });
+    }
+
+    // ← KIỂM TRA SỐ HỘ KHẨU ĐÃ TỒN TẠI
     const existingHoKhau = await HoKhau.findOne({ soHoKhau });
     if (existingHoKhau) {
+      console.log('❌ [POST /] Số hộ khẩu đã tồn tại:', soHoKhau);
       return res.status(400).json({ 
         success: false,
-        message: 'Số hộ khẩu đã tồn tại' 
+        message: `Số hộ khẩu "${soHoKhau}" đã tồn tại. Vui lòng chọn số khác.` 
       });
     }
 
+    // ← KIỂM TRA CHỦ HỘ TỒN TẠI
+    console.log('🔍 [POST /] Finding chuHo with ID:', chuHoId);
     const chuHo = await NhanKhau.findById(chuHoId);
+    
     if (!chuHo) {
+      console.log('❌ [POST /] Chủ hộ not found with ID:', chuHoId);
       return res.status(404).json({ 
         success: false,
-        message: 'Không tìm thấy chủ hộ' 
+        message: 'Không tìm thấy thông tin chủ hộ. Vui lòng khai báo thông tin cá nhân trước hoặc chọn chủ hộ khác.' 
       });
     }
 
+    console.log('✅ [POST /] Chủ hộ found:', {
+      id: chuHo._id,
+      hoTen: chuHo.hoTen,
+      currentHoKhauId: chuHo.hoKhauId
+    });
+
+    // ← KIỂM TRA CHỦ HỘ ĐÃ CÓ HỘ KHẨU CHƯA (CHO PHÉP NẾU NULL)
     if (chuHo.hoKhauId) {
       const oldHoKhau = await HoKhau.findById(chuHo.hoKhauId);
-      return res.status(400).json({ 
-        success: false,
-        message: `Người này đã là chủ hộ ${oldHoKhau?.soHoKhau || 'khác'}` 
-      });
+      
+      if (oldHoKhau) {
+        console.log('❌ [POST /] Chủ hộ đã có hộ khẩu:', oldHoKhau.soHoKhau);
+        return res.status(400).json({ 
+          success: false,
+          message: `${chuHo.hoTen} đã là ${chuHo.quanHeVoiChuHo || 'thành viên'} của hộ khẩu ${oldHoKhau.soHoKhau}. Vui lòng xóa khỏi hộ khẩu cũ trước.` 
+        });
+      } else {
+        // ← HỘ KHẨU CŨ ĐÃ BỊ XÓA → XÓA REFERENCE
+        console.log('⚠️ [POST /] Old hoKhauId invalid, cleaning up...');
+        chuHo.hoKhauId = null;
+        chuHo.quanHeVoiChuHo = null;
+        await chuHo.save();
+      }
     }
 
+    // ← TẠO HỘ KHẨU MỚI
+    console.log('📝 [POST /] Creating new hộ khẩu...');
     const hoKhau = new HoKhau({
       soHoKhau,
       chuHo: chuHoId,
       diaChiThuongTru,
       ngayLap: ngayLap || new Date(),
-      trangThai: trangThai || 'pending',
+      trangThai: trangThai || 'pending', // ← MẶC ĐỊNH CHỜ DUYỆT
       nguoiTao: req.user._id,
-      thanhVien: [chuHoId]
+      thanhVien: [chuHoId] // ← TỰ ĐỘNG THÊM CHỦ HỘ VÀO DANH SÁCH
     });
 
     await hoKhau.save();
+    console.log('✅ [POST /] HoKhau created:', hoKhau._id);
 
+    // ← CẬP NHẬT NHÂN KHẨU
     chuHo.hoKhauId = hoKhau._id;
     chuHo.quanHeVoiChuHo = 'Chủ hộ';
     await chuHo.save();
+    console.log('✅ [POST /] Updated chuHo:', chuHo.hoTen);
 
-    console.log('✅ [POST /] HoKhau created:', hoKhau.soHoKhau);
+    // ← GỬI THÔNG BÁO CHO ADMIN/TỔ TRƯỞNG
+    try {
+      const admins = await User.find({ 
+        vaiTro: { $in: ['admin', 'to_truong'] },
+        trangThai: 'active'
+      });
 
-    // ← GỬI THÔNG BÁO
-    const admins = await User.find({ 
-      vaiTro: { $in: ['admin', 'to_truong'] },
-      trangThai: 'active'
-    });
-
-    for (const admin of admins) {
-      await createNotification(
-        admin._id,
-        'info',
-        'Hộ khẩu mới đăng ký',
-        `Hộ khẩu ${soHoKhau} (Chủ hộ: ${chuHo.hoTen}) đã đăng ký mới`,
-        `/dashboard/hokhau/${hoKhau._id}`
-      );
+      for (const admin of admins) {
+        await createNotification(
+          admin._id,
+          'info',
+          '🏠 Hộ khẩu mới đăng ký',
+          `Hộ khẩu ${soHoKhau} (Chủ hộ: ${chuHo.hoTen}) đã đăng ký mới và chờ duyệt.`,
+          `/dashboard/hokhau/${hoKhau._id}`
+        );
+      }
+      console.log(`✅ [POST /] Sent notifications to ${admins.length} admins`);
+    } catch (notifError) {
+      console.error('⚠️ [POST /] Notification error (non-critical):', notifError.message);
     }
+
+    // ← POPULATE ĐỂ TRẢ VỀ
+    const populatedHoKhau = await HoKhau.findById(hoKhau._id)
+      .populate('chuHo', 'hoTen canCuocCongDan ngaySinh gioiTinh')
+      .populate('thanhVien', 'hoTen canCuocCongDan quanHeVoiChuHo');
+
+    console.log('✅ [POST /] Successfully created hộ khẩu:', populatedHoKhau.soHoKhau);
 
     res.status(201).json({
       success: true,
-      data: hoKhau,
-      message: '✅ Đã tạo hộ khẩu. Vui lòng chờ duyệt.'
+      message: `✅ Đã tạo hộ khẩu ${soHoKhau} thành công! Vui lòng chờ tổ trưởng duyệt.`,
+      data: populatedHoKhau
     });
   } catch (error) {
     console.error('❌ [POST /] Error:', error);
     res.status(500).json({ 
       success: false,
-      message: error.message 
+      message: error.message || 'Lỗi server khi tạo hộ khẩu' 
     });
   }
 });

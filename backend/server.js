@@ -14,27 +14,31 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quanlydan
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB error:', err));
 
-// ========== IMPORT ROUTES ========== ← THÊM ĐẦY ĐỦ
+// ========== IMPORT ROUTES ==========
 const authRoutes = require('./routes/AuthRoutes');
 const dashboardRoutes = require('./routes/DashboardRoutes');
 const nhanKhauRoutes = require('./routes/NhanKhauRoutes');
 const hoKhauRoutes = require('./routes/HoKhauRoutes');
-const tamTruRoutes = require('./routes/TamTruRoutes');      
-const tamVangRoutes = require('./routes/TamVangRoutes');    
-const khoanThuRoutes = require('./routes/KhoanThuRoutes');  
+const tamTruRoutes = require('./routes/TamTruRoutes');
+const tamVangRoutes = require('./routes/TamVangRoutes');
+const donTamTruRoutes = require('./routes/DonTamTruRoutes'); // ⭐ MỚI
+const donTamVangRoutes = require('./routes/DonTamVangRoutes'); // ⭐ MỚI
+const khoanThuRoutes = require('./routes/KhoanThuRoutes');
 const phieuThuRoutes = require('./routes/PhieuThuRoutes');
-const donXinVaoHoRoutes = require('./routes/DonXinVaoHoRoutes');  
+const donXinVaoHoRoutes = require('./routes/DonXinVaoHoRoutes');
 const userRoutes = require('./routes/UserRoutes');
 const notificationRoutes = require('./routes/NotificationRoutes');
-const feedbackRoutes = require('./routes/FeedbackRoutes');          
+const feedbackRoutes = require('./routes/FeedbackRoutes');
 
 // ========== REGISTER ROUTES ==========
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/nhankhau', nhanKhauRoutes);
 app.use('/api/hokhau', hoKhauRoutes);
-app.use('/api/tamtru', tamTruRoutes);
-app.use('/api/tamvang', tamVangRoutes);
+app.use('/api/tamtru', tamTruRoutes); // Danh sách chính thức
+app.use('/api/tamvang', tamVangRoutes); // Danh sách chính thức
+app.use('/api/don-tamtru', donTamTruRoutes); // ⭐ Đơn đăng ký
+app.use('/api/don-tamvang', donTamVangRoutes); // ⭐ Đơn đăng ký
 app.use('/api/khoanthu', khoanThuRoutes);
 app.use('/api/phieuthu', phieuThuRoutes);
 app.use('/api/donxinvaoho', donXinVaoHoRoutes);
