@@ -127,6 +127,7 @@ export const donXinVaoHoAPI = {
 
 // ========== USER ==========
 export const userAPI = {
+  getAll: (params) => api.get('/users', { params }),
   getAllUsers: () => api.get('/users'),
   getUserById: (id) => api.get(`/users/${id}`),
   updateRole: (userId, data) => api.put(`/users/${userId}/role`, data),

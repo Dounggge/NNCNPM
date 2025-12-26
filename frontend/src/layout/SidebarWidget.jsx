@@ -53,4 +53,4 @@ export default function SidebarWidget() {
       </div>
     </div>
   );
-}
+}           

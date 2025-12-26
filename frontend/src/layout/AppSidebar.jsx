@@ -41,7 +41,6 @@ const navItems = [
     path: "/dashboard/nhankhau",
     allowedRoles: ['admin', 'to_truong', 'ke_toan', 'chu_ho'],
   },
-  // ← SỬA PHẦN NÀY: TÁCH THÀNH 2 MENU RIÊNG BIỆT
   {
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,33 +99,6 @@ const navItems = [
   },
 ];
 
-const othersItems = [
-  {
-    icon: <PieChartIcon />,
-    name: "Biểu đồ",
-    path: "/charts",
-    allowedRoles: ['admin', 'to_truong', 'ke_toan'],
-  },
-  {
-    icon: <PageIcon />,
-    name: "Cài đặt",
-    allowedRoles: ['admin', 'to_truong'],
-    subItems: [
-      { name: "Thông tin hệ thống", path: "/settings/system", pro: false },
-      { name: "Quản lý người dùng", path: "/settings/users", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    allowedRoles: ['admin'],
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-    ],
-  },
-];
-
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const { isAdmin, user } = useAuth();
@@ -141,23 +113,23 @@ const AppSidebar = () => {
     [location.pathname]
   );
 
+  // ← SỬA PHẦN NÀY: XÓA "others" KHỎI VÒNG LẶP
   useEffect(() => {
     let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType,
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
+    
+    // ← CHỈ DUYỆT QUA "main" (navItems)
+    navItems.forEach((nav, index) => {
+      if (nav.subItems) {
+        nav.subItems.forEach((subItem) => {
+          if (isActive(subItem.path)) {
+            setOpenSubmenu({
+              type: "main", // ← CHỈ CÓ "main"
+              index,
+            });
+            submenuMatched = true;
+          }
+        });
+      }
     });
 
     if (!submenuMatched) {
@@ -274,7 +246,6 @@ const AppSidebar = () => {
               <ul className="mt-2 space-y-1 ml-9">
                 {nav.subItems
                   .filter(subItem => {
-                    // ← THÊM FILTER CHO SUBITEMS
                     if (subItem.allowedRoles && !subItem.allowedRoles.includes(user?.vaiTro)) return false;
                     return true;
                   })
@@ -343,7 +314,6 @@ const AppSidebar = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* ← GRADIENT OVERLAY TOP */}
       <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none"></div>
 
       <div
@@ -398,28 +368,11 @@ const AppSidebar = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] font-semibold text-blue-600/60 dark:text-blue-400/60 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "KHÁC"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
 
-      {/* ← GRADIENT OVERLAY BOTTOM */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-blue-500/10 to-transparent pointer-events-none"></div>
     </aside>
   );
