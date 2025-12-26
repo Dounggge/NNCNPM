@@ -25,9 +25,9 @@ const navItems = [
   },
   {
     icon: <PieChartIcon />,
-    name: "Admin Dashboard",
+    name: "Báo cáo thống kê",
     path: "/dashboard/admin",
-    allowedRoles: ['admin'],
+    allowedRoles: ['admin', 'to_truong'],
   },
   {
     icon: <UserCircleIcon />,
@@ -90,18 +90,12 @@ const navItems = [
   },
   {
     icon: <TableIcon />,
-    name: "Báo cáo thống kê",
-    path: "/dashboard/reports",
-    allowedRoles: ['admin', 'to_truong', 'ke_toan'],
-  },
-  {
-    icon: <TableIcon />,
     name: "Quản lý Thu phí",
     allowedRoles: ['admin', 'to_truong', 'ke_toan'],
     subItems: [
       { name: "Khoản thu", path: "/dashboard/khoanthu", pro: false },
       { name: "Phiếu thu", path: "/dashboard/phieuthu", pro: false },
-      { name: "Báo cáo", path: "/dashboard/reports", pro: true },
+      { name: "Báo cáo", path: "/dashboard/reports", pro: false},
     ],
   },
 ];

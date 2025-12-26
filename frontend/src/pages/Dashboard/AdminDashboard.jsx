@@ -75,7 +75,7 @@ export default function AdminDashboard() {
   return (
     <>
       <PageMeta
-        title="Admin Dashboard"
+        title="Báo cáo thống Kê"
         description="Tổng quan quản lý hệ thống"
       />
 
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            🎯 Admin Dashboard
+            📊 Báo cáo thống kê
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Xin chào, {user?.hoTen}! Tổng quan hệ thống quản lý dân cư
@@ -286,7 +286,7 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             ⚧ Phân bố giới tính
           </h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4"> {/* ← SỬA: grid-cols-3 → grid-cols-2 */}
             <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <div className="text-3xl font-bold text-blue-600">
                 {stats?.gioiTinh?.nam || 0}
@@ -298,12 +298,6 @@ export default function AdminDashboard() {
                 {stats?.gioiTinh?.nu || 0}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Nữ</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-3xl font-bold text-gray-600">
-                {stats?.gioiTinh?.khac || 0}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Khác</div>
             </div>
           </div>
         </div>
