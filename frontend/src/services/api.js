@@ -134,6 +134,7 @@ export const userAPI = {
   updateStatus: (userId, data) => api.put(`/users/${userId}/status`, data),
   linkProfile: (userId, data) => api.put(`/users/${userId}/link-profile`, data),
   deleteUser: (userId) => api.delete(`/users/${userId}`),
+  changePassword: (data) => api.put('/users/change-password', data),
 };
 
 // ========== AUTH ==========

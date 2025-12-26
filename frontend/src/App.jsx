@@ -43,6 +43,7 @@ import Landing from "./pages/AuthPages/Landing";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import RequireProfile from "./components/common/RequireProfile";
+import AccountSettings from './pages/Dashboard/AccountSettings';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -90,6 +91,9 @@ function App() {
 
               {/* THÔNG BÁO */}
               <Route path="notifications" element={<NotificationList />} />
+
+              {/* CÀI ĐẶT TÀI KHOẢN */}
+              <Route path="account" element={<AccountSettings />} />
 
               {/* ĐƠN XIN VÀO HỘ */}
               <Route path="donxinvaoho" element={<DonXinVaoHoList />} />

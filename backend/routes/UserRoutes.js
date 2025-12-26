@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
+const bcrypt = require('bcryptjs'); // ← THÊM DÒNG NÀY
 
 // GET ALL USERS
 router.get('/', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
@@ -11,11 +12,10 @@ router.get('/', authenticate, authorize('admin', 'to_truong'), async (req, res) 
       .select('-password')
       .sort({ createdAt: -1 });
 
-    // ← MAP ĐỂ TRẢ VỀ ĐỦ CẢ `role` VÀ `vaiTro` (tương thích)
     const formattedUsers = users.map(user => ({
       ...user.toObject(),
-      role: user.vaiTro,        // ← THÊM FIELD `role` = `vaiTro`
-      username: user.userName   // ← THÊM FIELD `username` = `userName`
+      role: user.vaiTro,
+      username: user.userName
     }));
 
     res.json({
@@ -50,7 +50,6 @@ router.put('/:userId/role', authenticate, authorize('admin', 'to_truong'), async
       });
     }
 
-    // ← PHÂN QUYỀN
     let allowedRoles = [];
 
     if (req.user.vaiTro === 'admin') {
@@ -68,7 +67,6 @@ router.put('/:userId/role', authenticate, authorize('admin', 'to_truong'), async
       });
     }
 
-    // ← KHÔNG CHO TỰ ĐỔI VAI TRÒ CỦA MÌNH
     if (req.user._id.toString() === req.params.userId) {
       return res.status(403).json({
         success: false,
@@ -76,7 +74,6 @@ router.put('/:userId/role', authenticate, authorize('admin', 'to_truong'), async
       });
     }
 
-    // ← CẬP NHẬT VAI TRÒ
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       { vaiTro: newRole },
@@ -94,7 +91,6 @@ router.put('/:userId/role', authenticate, authorize('admin', 'to_truong'), async
 
     console.log(`✅ [PUT /:userId/role] Updated: ${user.userName} → ${newRole}`);
 
-    // ← TRẢ VỀ USER ĐẦY ĐỦ
     res.json({
       success: true,
       message: `✅ Đã cập nhật vai trò thành ${newRole}`,
@@ -103,7 +99,7 @@ router.put('/:userId/role', authenticate, authorize('admin', 'to_truong'), async
         userName: user.userName,
         hoTen: user.hoTen,
         vaiTro: user.vaiTro,
-        role: user.vaiTro, // ← THÊM FIELD NÀY ĐỂ TƯƠNG THÍCH
+        role: user.vaiTro,
         trangThai: user.trangThai,
         nhanKhauId: user.nhanKhauId
       }
@@ -157,6 +153,71 @@ router.put('/:userId/status', authenticate, authorize('admin'), async (req, res)
       success: false,
       message: error.message 
     });
+  }
+});
+
+// ========== ĐỔI MẬT KHẨU ==========
+router.put('/change-password', authenticate, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    console.log('🔐 [CHANGE PASSWORD] Request:', {
+      userId: req.user._id,
+      userName: req.user.userName,
+      hasOldPassword: !!oldPassword,
+      hasNewPassword: !!newPassword
+    });
+
+    // VALIDATE
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin!' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Mật khẩu mới phải có ít nhất 6 ký tự!' });
+    }
+
+    // TÌM USER
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng!' });
+    }
+
+    // ← XÁC ĐỊNH FIELD MẬT KHẨU (password hoặc matKhau)
+    const passwordField = user.password !== undefined ? 'password' : 'matKhau';
+    console.log(`🔍 Password field detected: "${passwordField}"`);
+
+    // KIỂM TRA MẬT KHẨU CŨ
+    const isMatch = await bcrypt.compare(oldPassword, user[passwordField]);
+    if (!isMatch) {
+      console.log('❌ Old password incorrect');
+      return res.status(400).json({ message: 'Mật khẩu cũ không đúng!' });
+    }
+
+    // KIỂM TRA MẬT KHẨU MỚI KHÁC CŨ
+    const isSame = await bcrypt.compare(newPassword, user[passwordField]);
+    if (isSame) {
+      console.log('❌ New password same as old');
+      return res.status(400).json({ message: 'Mật khẩu mới phải khác mật khẩu cũ!' });
+    }
+
+    // MÃ HÓA MẬT KHẨU MỚI
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    user[passwordField] = hashedPassword;
+
+    await user.save();
+
+    console.log('✅ Password changed successfully for user:', user.userName);
+
+    res.json({ 
+      message: 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.',
+      success: true 
+    });
+  } catch (error) {
+    console.error('❌ Change password error:', error);
+    res.status(500).json({ message: 'Lỗi server: ' + error.message });
   }
 });
 
