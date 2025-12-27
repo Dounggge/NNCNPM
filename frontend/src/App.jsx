@@ -46,6 +46,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import RequireProfile from "./components/common/RequireProfile";
 import AccountSettings from './pages/Dashboard/AccountSettings';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -65,6 +66,7 @@ function App() {
             <Route path="/landing" element={<Landing />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             
             {/* ROOT */}
             <Route 

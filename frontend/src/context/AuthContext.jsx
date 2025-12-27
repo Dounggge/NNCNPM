@@ -24,23 +24,30 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Fetch user error:', error);
       localStorage.removeItem('token');
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // ⭐ HÀM MỚI: REFRESH USER (GỌI LẠI API ĐỂ CẬP NHẬT VAI TRÒ)
-  const refreshUser = async () => {
-    try {
-      const response = await authAPI.getMe();
-      const userData = response.data.data;
-      console.log('🔄 User refreshed:', userData);
-      setUser(userData);
-      return userData;
-    } catch (error) {
-      console.error('❌ Refresh user error:', error);
-      throw error;
-    }
+  const login = async (credentials) => {
+    const response = await authAPI.login(credentials);
+    const { token, user: userData } = response.data;
+    
+    localStorage.setItem('token', token);
+    setUser(userData);
+    
+    // ← FORCE RELOAD ĐỂ ĐẢM BẢO DỮ LIỆU MỚI
+    window.location.href = '/dashboard';
+    
+    return response.data;
+  };
+
+  const logout = () => {
+    console.log('🚪 Logging out...');
+    localStorage.removeItem('token');
+    setUser(null);
+    window.location.href = '/signin';
   };
 
   const updateUser = (newUserData) => {
@@ -48,43 +55,26 @@ export const AuthProvider = ({ children }) => {
     setUser(newUserData);
   };
 
-  const login = async (credentials) => {
-    const response = await authAPI.login(credentials);
-    localStorage.setItem('token', response.data.token);
-    setUser(response.data.user);
-    return response.data;
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    window.location.href = '/signin';
-  };
-
-  // ← KIỂM TRA ADMIN
   const isAdmin = user?.vaiTro === 'admin';
 
-  // ← HÀM hasPermission
   const hasPermission = (permission) => {
     if (!user) return false;
-
-    // Admin có tất cả quyền
     if (user.vaiTro === 'admin') return true;
 
-    // Định nghĩa permissions theo vai trò
     const permissions = {
       to_truong: [
         'nhankhau:read', 'nhankhau:create', 'nhankhau:update', 'nhankhau:delete',
         'hokhau:read', 'hokhau:create', 'hokhau:update', 'hokhau:delete',
         'tamtru:read', 'tamtru:create', 'tamtru:approve',
         'tamvang:read', 'tamvang:create', 'tamvang:approve',
+        'phieuthu:read', 'phieuthu:create', 'phieuthu:approve',
         'dashboard:read'
       ],
       ke_toan: [
         'nhankhau:read',
         'hokhau:read',
         'khoanthu:read', 'khoanthu:create', 'khoanthu:update', 'khoanthu:delete',
-        'phieuthu:read', 'phieuthu:create', 'phieuthu:update',
+        'phieuthu:read', 'phieuthu:create', 'phieuthu:update', 'phieuthu:approve',
         'dashboard:read'
       ],
       chu_ho: [
@@ -101,7 +91,6 @@ export const AuthProvider = ({ children }) => {
 
     const userPermissions = permissions[user.vaiTro] || [];
     
-    // Hỗ trợ wildcard (vd: 'nhankhau:*')
     if (permission.includes(':*')) {
       const [resource] = permission.split(':');
       return userPermissions.some(p => p.startsWith(resource + ':'));
@@ -110,11 +99,9 @@ export const AuthProvider = ({ children }) => {
     return userPermissions.includes(permission);
   };
 
-  // ← HÀM canAccess (KIỂM TRA THEO VAI TRÒ)
   const canAccess = (roles) => {
     if (!user) return false;
     
-    // ← HỖ TRỢ CẢ STRING VÀ ARRAY
     if (typeof roles === 'string') {
       return user.vaiTro === roles;
     }
@@ -126,8 +113,6 @@ export const AuthProvider = ({ children }) => {
     return false;
   };
 
-  console.log('🔍 AuthContext state:', { user, isAdmin });
-
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -138,8 +123,7 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout, 
       updateUser,
-      fetchUser,
-      refreshUser // ⭐ THÊM VÀO ĐÂY
+      fetchUser
     }}>
       {children}
     </AuthContext.Provider>

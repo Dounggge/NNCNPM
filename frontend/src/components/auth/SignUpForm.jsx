@@ -49,23 +49,18 @@ export default function SignUpForm() {
     setLoading(true);
 
     try {
-      // Register
+      // ← CHỈ ĐĂNG KÝ, KHÔNG TỰ ĐỘNG ĐĂNG NHẬP
       await authAPI.register({
         canCuocCongDan: formData.canCuocCongDan,
         hoTen: formData.hoTen,
-        userName: formData.userName || undefined, // Send only if provided
+        userName: formData.userName || undefined,
         password: formData.password
       });
       
-      // Auto login after register
-      const loginResponse = await authAPI.login({
-        canCuocCongDan: formData.userName || formData.canCuocCongDan, // Use username if provided
-        password: formData.password
-      });
+      // ← HIỂN THỊ THÔNG BÁO VÀ CHUYỂN VỀ TRANG ĐĂNG NHẬP
+      alert('✅ Đăng ký thành công! Vui lòng đăng nhập.');
+      navigate('/signin');
       
-      localStorage.setItem('token', loginResponse.data.token);
-      localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
-      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
@@ -117,7 +112,7 @@ export default function SignUpForm() {
               maxLength={12}
               value={formData.canCuocCongDan}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, ''); // Only numbers
+                const value = e.target.value.replace(/\D/g, '');
                 setFormData({ ...formData, canCuocCongDan: value });
               }}
               placeholder="001234567890"

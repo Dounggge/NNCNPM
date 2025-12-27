@@ -19,7 +19,9 @@ export default function Home() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchUserData();
+    if (currentUser) {
+      fetchUserData();
+    }
   }, [currentUser]);
 
   const fetchUserData = async () => {

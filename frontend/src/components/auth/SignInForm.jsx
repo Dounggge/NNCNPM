@@ -12,7 +12,7 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [formData, setFormData] = useState({
-    canCuocCongDan: '', // Can be userName or CCCD
+    canCuocCongDan: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -28,12 +28,15 @@ export default function SignInForm() {
         canCuocCongDan: formData.canCuocCongDan,
         password: formData.password
       });
+      
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      navigate('/dashboard');
+      
+      // ← FORCE RELOAD TOÀN BỘ TRANG ĐỂ RESET STATE
+      window.location.href = '/dashboard';
+      
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
-    } finally {
       setLoading(false);
     }
   };
