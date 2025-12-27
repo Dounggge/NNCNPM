@@ -230,13 +230,13 @@ export default function Home() {
             <div className="p-6">
               {nhanKhauInfo ? (
                 <div className="space-y-4">
-                  <InfoRow label="Họ và tên" value={nhanKhauInfo.hoTen} icon="👤" />
-                  <InfoRow label="CCCD" value={nhanKhauInfo.canCuocCongDan} icon="🪪" />
-                  <InfoRow label="Ngày sinh" value={formatDate(nhanKhauInfo.ngaySinh)} icon="🎂" />
-                  <InfoRow label="Giới tính" value={nhanKhauInfo.gioiTinh} icon={nhanKhauInfo.gioiTinh === 'Nam' ? '👨' : '👩'} />
-                  <InfoRow label="Dân tộc" value={nhanKhauInfo.danToc || 'N/A'} icon="🌏" />
-                  <InfoRow label="Nghề nghiệp" value={nhanKhauInfo.ngheNghiep || 'N/A'} icon="💼" />
-                  <InfoRow label="SĐT" value={nhanKhauInfo.soDienThoai || 'Chưa cập nhật'} icon="📱" />
+                  <InfoRow label="Họ và tên" value={nhanKhauInfo.hoTen} />
+                  <InfoRow label="CCCD" value={nhanKhauInfo.canCuocCongDan} />
+                  <InfoRow label="Ngày sinh" value={formatDate(nhanKhauInfo.ngaySinh)} />
+                  <InfoRow label="Giới tính" value={nhanKhauInfo.gioiTinh} />
+                  <InfoRow label="Dân tộc" value={nhanKhauInfo.danToc || 'N/A'} />
+                  <InfoRow label="Nghề nghiệp" value={nhanKhauInfo.ngheNghiep || 'N/A'} />
+                  <InfoRow label="SĐT" value={nhanKhauInfo.soDienThoai || 'Chưa cập nhật'} />
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -286,18 +286,16 @@ export default function Home() {
             <div className="p-6">
               {hoKhauInfo ? (
                 <div className="space-y-4">
-                  <InfoRow label="Số hộ khẩu" value={hoKhauInfo.soHoKhau} icon="🔢" highlight />
-                  <InfoRow label="Chủ hộ" value={hoKhauInfo.chuHo?.hoTen || 'N/A'} icon="👤" />
-                  <InfoRow label="Địa chỉ thường trú" value={hoKhauInfo.diaChiThuongTru} icon="📍" />
-                  <InfoRow label="Số thành viên" value={`${hoKhauInfo.thanhVien?.length || 0} người`} icon="👥" />
+                  <InfoRow label="Số hộ khẩu" value={hoKhauInfo.soHoKhau} />
+                  <InfoRow label="Chủ hộ" value={hoKhauInfo.chuHo?.hoTen || 'N/A'} />
+                  <InfoRow label="Địa chỉ thường trú" value={hoKhauInfo.diaChiThuongTru} />
+                  <InfoRow label="Số thành viên" value={`${hoKhauInfo.thanhVien?.length || 0} người`} />
                   <InfoRow 
                     label="Quan hệ với chủ hộ" 
                     value={nhanKhauInfo?.quanHeVoiChuHo || 'N/A'} 
-                    icon="👨‍👩‍👧‍👦"
                   />
                   <InfoRow 
                     label="Trạng thái" 
-                    icon="📊"
                     value={
                       <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
                         hoKhauInfo.trangThai === 'active' 

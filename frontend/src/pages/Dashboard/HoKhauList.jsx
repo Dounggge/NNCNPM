@@ -158,7 +158,7 @@ export default function HoKhauList() {
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            🏠 Danh sách Hộ Khẩu
+            Danh sách Hộ Khẩu
           </h3>
           
           <div className="flex gap-3">

@@ -57,9 +57,6 @@ export default function TamTruDetail() {
         {/* HEADER */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-3xl shadow-lg">
-              🏘️
-            </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Chi tiết đơn tạm trú
@@ -75,7 +72,6 @@ export default function TamTruDetail() {
           {/* THÔNG TIN NGƯỜI ĐĂNG KÝ */}
           <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-6">
             <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-400 mb-4 flex items-center gap-2">
-              <span className="text-2xl">👤</span>
               Thông tin người đăng ký
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,7 +86,6 @@ export default function TamTruDetail() {
           {/* THÔNG TIN TẠM TRÚ */}
           <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 p-6">
             <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-400 mb-4 flex items-center gap-2">
-              <span className="text-2xl">📍</span>
               Thông tin tạm trú
             </h3>
             <div className="space-y-4">
@@ -107,7 +102,6 @@ export default function TamTruDetail() {
           {/* THÔNG TIN KHÁC */}
           <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-300 mb-4 flex items-center gap-2">
-              <span className="text-2xl">📋</span>
               Thông tin khác
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

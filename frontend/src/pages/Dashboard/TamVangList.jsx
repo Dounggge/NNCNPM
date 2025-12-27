@@ -62,9 +62,6 @@ export default function TamVangList() {
         <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 flex items-center justify-center text-3xl shadow-lg">
-                ✈️
-              </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Danh sách người Tạm vắng

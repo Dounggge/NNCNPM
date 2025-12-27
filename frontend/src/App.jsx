@@ -12,7 +12,9 @@ import TamTruDetail from "./pages/Dashboard/TamTruDetail"; // ⭐ THÊM
 import TamVangList from "./pages/Dashboard/TamVangList";
 import TamVangDetail from "./pages/Dashboard/TamVangDetail"; // ⭐ THÊM
 import KhoanThuList from "./pages/Dashboard/KhoanThuList";
+import KhoanThuDetail from "./pages/Dashboard/KhoanThuDetail";//Thêm
 import PhieuThuList from "./pages/Dashboard/PhieuThuList";
+import PhieuThuDetail from "./pages/Dashboard/PhieuThuDetail"; // Thêm
 import UserList from "./pages/Dashboard/UserList";
 import DonXinVaoHoList from './pages/Dashboard/DonXinVaoHoList';
 import DonTamTruList from './pages/Dashboard/DonTamTruList';
@@ -142,10 +144,12 @@ function App() {
               {/* QUẢN LÝ THU PHÍ */}
               <Route path="khoanthu" element={<RequireProfile><KhoanThuList /></RequireProfile>} />
               <Route path="khoanthu/create" element={<RequireProfile><KhoanThuForm /></RequireProfile>} />
+              <Route path="khoanthu/:id" element={<RequireProfile><KhoanThuDetail /></RequireProfile>} />{/*Thêm*/}
               <Route path="khoanthu/:id/edit" element={<RequireProfile><KhoanThuForm /></RequireProfile>} />
               
               <Route path="phieuthu" element={<RequireProfile><PhieuThuList /></RequireProfile>} />
               <Route path="phieuthu/create" element={<RequireProfile><PhieuThuForm /></RequireProfile>} />
+              <Route path="/dashboard/phieuthu/:id" element={<PhieuThuDetail />} />
 
               {/* QUẢN LÝ USER */}
               <Route path="users" element={<RequireProfile><UserList /></RequireProfile>} />

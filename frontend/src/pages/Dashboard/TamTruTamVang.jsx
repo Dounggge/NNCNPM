@@ -91,7 +91,7 @@ export default function TamTruTamVang() {
 
               {/* Content */}
               <h3 className="mb-3 text-2xl font-bold text-gray-900 dark:text-white">
-                📤 Tạm vắng
+                Tạm vắng
               </h3>
               <p className="mb-6 text-gray-600 dark:text-gray-400">
                 Đăng ký tạm vắng cho người trong khu vực đi nơi khác tạm thời
@@ -169,7 +169,7 @@ export default function TamTruTamVang() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  🚀 Tạo đơn đăng ký mới
+                  Tạo đơn đăng ký mới
                 </h3>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                   Bạn có quyền tạo đơn tạm trú/tạm vắng cho nhân khẩu

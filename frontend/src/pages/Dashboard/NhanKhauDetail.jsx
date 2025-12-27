@@ -55,11 +55,6 @@ export default function NhanKhauDetail() {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const getGenderIcon = (gender) => {
-    if (gender === 'Nam') return '👨';
-    if (gender === 'Nu' || gender === 'Nữ') return '👩';
-    return '⚧';
-  };
 
   if (loading) {
     return (
@@ -163,10 +158,6 @@ export default function NhanKhauDetail() {
             <InfoItem 
               label="Ngày sinh" 
               value={formatDate(nhanKhau.ngaySinh)} 
-            />
-            <InfoItem 
-              label="Giới tính" 
-              value={`${getGenderIcon(nhanKhau.gioiTinh)} ${nhanKhau.gioiTinh}`} 
             />
             <InfoItem label="Dân tộc" value={nhanKhau.danToc || 'Chưa cập nhật'} />
             <InfoItem label="Tôn giáo" value={nhanKhau.tonGiao || 'Không'} />

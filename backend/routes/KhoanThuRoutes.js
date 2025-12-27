@@ -73,10 +73,10 @@ router.post(
 
       const notifications = allUsers.map(user => ({
         userId: user._id,
-        type: 'info', // ← QUAN TRỌNG: PHẢI LÀ 'info', 'success', 'warning', hoặc 'error'
-        title: '🔔 Khoản thu mới',
-        message: `Khoản thu "${khoanThu.tenKhoanThu}" đã được tạo. Số tiền: ${khoanThu.donGia.toLocaleString()} VNĐ/${khoanThu.donVi}`,
-        link: `/dashboard/khoanthu`
+        type: 'info',
+        title: 'Khoản thu mới',
+        message: `Khoản thu "${khoanThu.tenKhoanThu}" đã được tạo. Số tiền: ${khoanThu.donGia.toLocaleString()} VNĐ`,
+        link: `/khoan-thu/${khoanThu._id}`
       }));
 
       try {

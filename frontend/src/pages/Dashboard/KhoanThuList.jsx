@@ -46,6 +46,18 @@ export default function KhoanThuList() {
     }).format(amount);
   };
 
+const formatDonVi = (donVi) => {
+  const donViMap = {
+    'VND/thang': 'VNĐ/Tháng',
+    'VND/m2': 'VNĐ/m²',
+    'VND/nguoi': 'VNĐ/Người',
+    'VND/lan': 'VNĐ/Lần',
+    'VND/V': 'VNĐ/m²' // fallback
+  };
+
+  return donViMap[donVi] || donVi || 'Không xác định';
+};
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Không giới hạn';
     return new Date(dateString).toLocaleDateString('vi-VN');
@@ -84,7 +96,7 @@ export default function KhoanThuList() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              💰 Danh mục Khoản thu
+              Danh mục Khoản thu
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Quản lý các loại phí thu: Quản lý, Điện nước, Vệ sinh, Đóng góp...
@@ -189,7 +201,7 @@ export default function KhoanThuList() {
                       {formatCurrency(kt.donGia)}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {kt.donVi}
+                      {formatDonVi(kt.donVi)}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
                       <div>{formatDate(kt.batDau)}</div>
@@ -201,7 +213,7 @@ export default function KhoanThuList() {
                           to={`/dashboard/khoanthu/${kt._id}`}
                           className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20"
                         >
-                          👁️ Xem
+                          Mô tả chi tiết
                         </Link>
 
                         {hasPermission('khoanthu:delete') && (

@@ -94,7 +94,6 @@ const navItems = [
     subItems: [
       { name: "Khoản thu", path: "/dashboard/khoanthu", pro: false },
       { name: "Phiếu thu", path: "/dashboard/phieuthu", pro: false },
-      { name: "Báo cáo", path: "/dashboard/reports", pro: false},
     ],
   },
 ];

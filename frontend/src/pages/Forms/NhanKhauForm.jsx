@@ -191,7 +191,7 @@ export default function NhanKhauForm() {
             {/* THÔNG TIN CƠ BẢN */}
             <div>
               <h4 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                📋 Thông tin cơ bản
+                Thông tin cơ bản
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">
@@ -245,7 +245,7 @@ export default function NhanKhauForm() {
             {/* GIẤY TỜ TÙY THÂN */}
             <div>
               <h4 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                🆔 Giấy tờ tùy thân
+                Giấy tờ tùy thân
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
@@ -295,7 +295,7 @@ export default function NhanKhauForm() {
             {/* THÔNG TIN BỔ SUNG */}
             <div>
               <h4 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                📍 Thông tin bổ sung
+                Thông tin bổ sung
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">

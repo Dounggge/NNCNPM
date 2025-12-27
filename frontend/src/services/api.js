@@ -110,12 +110,21 @@ export const khoanThuAPI = {
 
 // ========== PHIẾU THU ==========
 export const phieuThuAPI = {
-  getAll: (params) => api.get('/phieuthu', { params }),
-  getById: (id) => api.get(`/phieuthu/${id}`),
+  getAll: (params) => {
+    console.log('API Call - GET /phieuthu with params:', params);
+    return api.get('/phieuthu', { params });
+  },
+  getById: (id) => {
+    console.log('API Call - GET /phieuthu/' + id);
+    return api.get(`/phieuthu/${id}`);
+  },
   create: (data) => api.post('/phieuthu', data),
   update: (id, data) => api.put(`/phieuthu/${id}`, data),
   delete: (id) => api.delete(`/phieuthu/${id}`),
-  markAsPaid: (id, data) => api.put(`/phieuthu/${id}/paid`, data),
+  markAsPaid: (id, data = {}) => {
+    console.log('API Call - PUT /phieuthu/' + id + '/paid');
+    return api.put(`/phieuthu/${id}/paid`, data);
+  },
 };
 
 export const donXinVaoHoAPI = {

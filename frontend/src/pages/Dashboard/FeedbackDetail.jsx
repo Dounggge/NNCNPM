@@ -90,14 +90,14 @@ export default function FeedbackDetail() {
 
   const getTypeBadge = (type) => {
     const badges = {
-      gop_y: { icon: '💡', label: 'Góp ý', color: 'bg-blue-50 text-blue-700' },
-      khieu_nai: { icon: '⚠️', label: 'Khiếu nại', color: 'bg-red-50 text-red-700' },
-      hoi_dap: { icon: '❓', label: 'Hỏi đáp', color: 'bg-purple-50 text-purple-700' }
+      gop_y: { label: 'Góp ý', color: 'bg-blue-50 text-blue-700' },
+      khieu_nai: { label: 'Khiếu nại', color: 'bg-red-50 text-red-700' },
+      hoi_dap: { label: 'Hỏi đáp', color: 'bg-purple-50 text-purple-700' }
     };
     const badge = badges[type] || badges.gop_y;
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.color}`}>
-        {badge.icon} {badge.label}
+        {badge.label}
       </span>
     );
   };
