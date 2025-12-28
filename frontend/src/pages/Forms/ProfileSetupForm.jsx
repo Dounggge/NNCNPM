@@ -196,7 +196,7 @@ export default function ProfileSetupForm() {
           >
             <option value="">-- Chọn giới tính --</option>
             <option value="Nam">Nam</option>
-            <option value="Nu">Nữ</option>
+            <option value="Nữ">Nữ</option>
             <option value="Khac">Khác</option>
           </select>
         </div>
