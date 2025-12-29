@@ -26,10 +26,11 @@ a:hover {
   color: #535bf2;
 }
 
+/* XÓA hoặc COMMENT dòng này */
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  /* display: flex; */         /* ← XÓA dòng này */
+  /* place-items: center; */   /* ← XÓA dòng này */
   min-width: 320px;
   min-height: 100vh;
 }
@@ -69,4 +70,21 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+@keyframes wave {
+  0%, 100% { 
+    transform: rotate(0deg); 
+  }
+  25% { 
+    transform: rotate(20deg); 
+  }
+  75% { 
+    transform: rotate(-20deg); 
+  }
+}
+
+.animate-wave {
+  display: inline-block;
+  animation: wave 1s ease-in-out infinite;
 }

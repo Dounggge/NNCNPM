@@ -5,33 +5,34 @@ const khoanThuSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  loaiThu: {
+  loaiKhoanThu: {
     type: String,
-    enum: ['Bắt buộc', 'Đóng góp', 'Phí dịch vụ'],
+    enum: ['bat_buoc', 'dong_gop', 'dich_vu'],
     required: true
   },
-  soTien: {
+  donGia: {
     type: Number,
     required: true,
     min: 0
   },
-  donViTinh: {
+  donVi: {
     type: String,
-    enum: ['VNĐ/tháng', 'VNĐ/người', 'VNĐ/lần', 'VNĐ'],
-    default: 'VNĐ'
+    enum: ['VND/thang', 'VND/nguoi', 'VND/lan', 'VND/V'],
+    default: 'VND'
   },
-  ngayBatDau: {
+  batDau: {
     type: Date,
     required: true
   },
-  ngayKetThuc: Date,
+  ketThuc: {
+    type: Date
+  },
   moTa: String,
   nguoiTao: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('KhoanThu', khoanThuSchema);

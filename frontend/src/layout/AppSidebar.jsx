@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-// Assume these icons are imported from an icon library
 import {
-  BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
   GridIcon,
@@ -22,59 +21,97 @@ const navItems = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    path: "/",
+    path: "/dashboard",
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Báo cáo thống kê",
+    path: "/dashboard/admin",
+    allowedRoles: ['admin', 'to_truong'],
   },
   {
     icon: <UserCircleIcon />,
     name: "Quản lý Hộ Khẩu",
-    path: "/households",
+    path: "/dashboard/hokhau",
+    allowedRoles: ['admin', 'to_truong', 'ke_toan'],
   },
   {
     icon: <ListIcon />,
     name: "Quản lý Nhân Khẩu",
-    path: "/residents",
+    path: "/dashboard/nhankhau",
+    allowedRoles: ['admin', 'to_truong', 'ke_toan', 'chu_ho'],
+  },
+  // ← THÊM MENU PHẢN HỒI
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+    ),
+    name: "Danh sách phản hồi",
+    path: "/dashboard/feedbacks",
+    allowedRoles: ['admin', 'to_truong'],
   },
   {
-    icon: <CalenderIcon />,
-    name: "Tạm trú/Tạm vắng",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+    name: "Tạm trú",
+    allowedRoles: ['admin', 'to_truong'],
     subItems: [
-      { name: "Tạm trú", path: "/temporary-residence", pro: false },
-      { name: "Tạm vắng", path: "/temporary-absence", pro: false },
+      { 
+        name: "Danh sách người Tạm trú", 
+        path: "/dashboard/tamtru", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong']
+      },
+      { 
+        name: "Đơn xin Tạm trú", 
+        path: "/dashboard/don-tam-tru", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong']
+      },
+    ],
+  },
+  {
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+    ),
+    name: "Tạm vắng",
+    allowedRoles: ['admin', 'to_truong'],
+    subItems: [
+      { 
+        name: "Danh sách người Tạm vắng", 
+        path: "/dashboard/tamvang", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong', 'ke_toan']
+      },
+      { 
+        name: "Đơn xin Tạm vắng", 
+        path: "/dashboard/don-tam-vang", 
+        pro: false,
+        allowedRoles: ['admin', 'to_truong']
+      },
     ],
   },
   {
     icon: <TableIcon />,
-    name: "Báo cáo thống kê",
-    path: "/reports",
-  },
-];
-
-const othersItems = [
-  {
-    icon: <PieChartIcon />,
-    name: "Biểu đồ",
-    path: "/charts",
-  },
-  {
-    icon: <PageIcon />,
-    name: "Cài đặt",
+    name: "Quản lý Thu phí",
+    allowedRoles: ['admin', 'to_truong', 'ke_toan'],
     subItems: [
-      { name: "Thông tin hệ thống", path: "/settings/system", pro: false },
-      { name: "Quản lý người dùng", path: "/settings/users", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Khoản thu", path: "/dashboard/khoanthu", pro: false },
+      { name: "Phiếu thu", path: "/dashboard/phieuthu", pro: false },
     ],
   },
 ];
 
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isAdmin, user } = useAuth();
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -88,21 +125,19 @@ const AppSidebar = () => {
 
   useEffect(() => {
     let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType,
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
+    
+    navItems.forEach((nav, index) => {
+      if (nav.subItems) {
+        nav.subItems.forEach((subItem) => {
+          if (isActive(subItem.path)) {
+            setOpenSubmenu({
+              type: "main",
+              index,
+            });
+            submenuMatched = true;
+          }
+        });
+      }
     });
 
     if (!submenuMatched) {
@@ -137,7 +172,12 @@ const AppSidebar = () => {
 
   const renderMenuItems = (items, menuType) => (
     <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => (
+      {items
+      .filter(nav => {
+        if (nav.allowedRoles && !nav.allowedRoles.includes(user?.vaiTro)) return false;
+        return true;
+      })
+      .map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button
@@ -212,7 +252,12 @@ const AppSidebar = () => {
               }}
             >
               <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
+                {nav.subItems
+                  .filter(subItem => {
+                    if (subItem.allowedRoles && !subItem.allowedRoles.includes(user?.vaiTro)) return false;
+                    return true;
+                  })
+                  .map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}
@@ -260,7 +305,11 @@ const AppSidebar = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 
+        bg-gradient-to-b from-slate-50 via-blue-50/30 to-white 
+        dark:from-gray-950 dark:via-blue-950/20 dark:to-gray-900
+        border-r border-blue-100/50 dark:border-blue-900/30
+        text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 shadow-xl
         ${
           isExpanded || isMobileOpen
             ? "w-[290px]"
@@ -273,45 +322,47 @@ const AppSidebar = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none"></div>
+
       <div
         className={`py-8 flex ${
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
+        } relative z-10`}
       >
-        <Link to="/">
+        <Link to="/dashboard" className="flex items-center gap-3 group">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500 blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <img
+                  src="/logo.png"
+                  alt="Logo Quản lý Dân cư"
+                  className="h-12 w-auto relative z-10"
+                />
+              </div>
+              <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                Quản lý Dân cư
+              </span>
             </>
           ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500 blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="h-10 w-auto relative z-10"
+              />
+            </div>
           )}
         </Link>
       </div>
+
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-4 text-xs uppercase flex leading-[20px] font-semibold text-blue-600/60 dark:text-blue-400/60 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -325,26 +376,12 @@ const AppSidebar = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "KHÁC"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
+
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-blue-500/10 to-transparent pointer-events-none"></div>
     </aside>
   );
 };

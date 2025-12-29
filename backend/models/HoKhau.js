@@ -11,7 +11,11 @@ const hoKhauSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
-  ngayDangKy: {
+  diaChiThuongTru: {
+    type: String,
+    required: true
+  },
+  ngayLap: {
     type: Date,
     default: Date.now
   },
@@ -23,17 +27,30 @@ const hoKhauSchema = new mongoose.Schema({
   thanhVien: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'NhanKhau'
-  }]
+  }],
+  trangThai: {
+    type: String,
+    enum: ['pending', 'active', 'inactive', 'rejected'], // ← THÊM 'rejected'
+    default: 'pending'
+  },
+  nguoiTao: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  // ← THÊM 3 FIELD MỚI
+  nguoiDuyet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  ngayDuyet: Date,
+  lyDoTuChoi: String
+  
 }, {
   timestamps: true
 });
 
-// Auto-generate soHoKhau
+// Auto-generate id
 hoKhauSchema.pre('save', async function(next) {
-  if (!this.soHoKhau) {
-    const count = await mongoose.model('HoKhau').countDocuments();
-    this.soHoKhau = `HK${String(count + 1).padStart(6, '0')}`;
-  }
   if (!this.id) {
     this.id = this.soHoKhau;
   }
