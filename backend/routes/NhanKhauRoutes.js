@@ -200,7 +200,6 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // ========== UPDATE ==========
-// ← SỬA: CHO PHÉP USER CẬP NHẬT THÔNG TIN CỦA MÌNH
 router.put('/:id', authenticate, async (req, res) => {
   try {
     const nhanKhau = await NhanKhau.findById(req.params.id);

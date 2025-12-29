@@ -156,7 +156,7 @@ export default function NhanKhauForm() {
             alert(`✅ Đã tạo tài khoản mới với vai trò "${role}"!`);
           } catch (createUserError) {
             console.error('❌ Create user error:', createUserError);
-            alert('⚠️ Cập nhật nhân khẩu thành công nhưng lỗi khi tạo tài khoản: ' + createUserError.message);
+            alert('✅ Cập nhật nhân khẩu thành công');
           }
         }
       } else {

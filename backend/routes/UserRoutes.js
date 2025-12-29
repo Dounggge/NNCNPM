@@ -2,7 +2,74 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
-const bcrypt = require('bcryptjs'); // ← THÊM DÒNG NÀY
+const bcrypt = require('bcryptjs'); 
+
+router.post('/create-from-nhankhau', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
+  try {
+    const { nhanKhauId, vaiTro = 'dan_cu' } = req.body;
+
+    if (!nhanKhauId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu nhanKhauId'
+      });
+    }
+
+    const NhanKhau = require('../models/NhanKhau');
+    const nhanKhau = await NhanKhau.findById(nhanKhauId);
+    
+    if (!nhanKhau) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy nhân khẩu'
+      });
+    }
+
+    if (nhanKhau.userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nhân khẩu này đã có tài khoản'
+      });
+    }
+
+    const existingUser = await User.findOne({ userName: nhanKhau.canCuocCongDan });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Số CCCD này đã được dùng làm tài khoản'
+      });
+    }
+
+    const newUser = new User({
+      userName: nhanKhau.canCuocCongDan,
+      password: nhanKhau.canCuocCongDan,
+      vaiTro: vaiTro,
+      nhanKhauId: nhanKhau._id,
+      hoTen: nhanKhau.hoTen
+    });
+
+    await newUser.save();
+
+    nhanKhau.userId = newUser._id;
+    await nhanKhau.save();
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        _id: newUser._id,
+        userName: newUser.userName,
+        vaiTro: newUser.vaiTro
+      },
+      message: `Đã tạo tài khoản với vai trò "${vaiTro}"`
+    });
+  } catch (error) {
+    console.error('❌ Create user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
 
 // GET ALL USERS
 router.get('/', authenticate, authorize('admin', 'to_truong'), async (req, res) => {
