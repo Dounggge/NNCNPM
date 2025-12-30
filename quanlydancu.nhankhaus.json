@@ -1,0 +1,631 @@
+[{
+  "_id": {
+    "$oid": "695290d3924f94da8dfd7895"
+  },
+  "hoTen": "Nguyễn Văn Hùng",
+  "canCuocCongDan": "001085000123",
+  "ngaySinh": {
+    "$date": "1985-08-12T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Nam Định",
+  "queQuan": "Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Kỹ sư xây dựng",
+  "noiLamViec": "Công ty CP Xây dựng Hà Nội",
+  "trinhDoHocVan": "Đại học",
+  "soDienThoai": "0985123456",
+  "email": "hhh123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "69529076924f94da8dfd787d"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T14:31:47.702Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T14:32:10.537Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "695290ea924f94da8dfd78d7"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "69529692924f94da8dfd79d1"
+  },
+  "hoTen": "Trần Thị Lan",
+  "canCuocCongDan": "001090000456",
+  "ngaySinh": {
+    "$date": "1990-07-25T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Đa khoa Quảng Nam",
+  "queQuan": "Xã Điện Phương, Thị xã Điện Bàn, Tỉnh Quảng Nam",
+  "danToc": "Tày",
+  "tonGiao": "Không",
+  "ngheNghiep": "Giáo viên",
+  "noiLamViec": "Trường THPT Thanh Khê",
+  "trinhDoHocVan": "Cao đẳng",
+  "soDienThoai": "0906345678",
+  "email": "lll123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "69529199924f94da8dfd7936"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T14:56:18.760Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:21:26.596Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529c76924f94da8dfd7a81"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "69529dd1924f94da8dfd7af6"
+  },
+  "hoTen": "Lê Văn Minh",
+  "canCuocCongDan": "079078000789",
+  "ngaySinh": {
+    "$date": "1978-02-11T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa tỉnh An Giang",
+  "queQuan": "Xã Mỹ Phước, Huyện Chợ Mới, Tỉnh An Giang",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Kế toán",
+  "noiLamViec": "Công ty TNHH Nhật Minh",
+  "trinhDoHocVan": "Đại học",
+  "soDienThoai": "0978123987",
+  "email": "lmv123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "69529d1d924f94da8dfd7ad3"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:27:13.625Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:27:40.364Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529dec924f94da8dfd7b1a"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "69529e77924f94da8dfd7b7a"
+  },
+  "hoTen": "Đặng Quốc Bảo",
+  "canCuocCongDan": "031095000654",
+  "ngaySinh": {
+    "$date": "1995-09-09T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa tỉnh Bình Định",
+  "queQuan": "Phường Nhơn Bình, TP Quy Nhơn, Tỉnh Bình Định",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Lập trình viên",
+  "noiLamViec": "Công ty phần mềm VinaTech",
+  "trinhDoHocVan": "Thạc sĩ",
+  "soDienThoai": "0935566778",
+  "email": "dqb123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "69529e1e924f94da8dfd7b62"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:29:59.151Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:30:20.580Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529e8c924f94da8dfd7b9e"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "69529efc924f94da8dfd7bfd"
+  },
+  "hoTen": "Võ Thị Hạnh",
+  "canCuocCongDan": "043082000987",
+  "ngaySinh": {
+    "$date": "1982-01-30T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Trung ương Huế",
+  "queQuan": "Xã Triệu Long, Huyện Triệu Phong, Tỉnh Quảng Trị",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Điều dưỡng",
+  "noiLamViec": "Bệnh viện Bạch Mai",
+  "trinhDoHocVan": "Đại học",
+  "soDienThoai": "0909988776",
+  "email": "vth@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "69529eb6924f94da8dfd7be6"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:32:12.415Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:32:24.323Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529f08924f94da8dfd7c1c"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "69529f94924f94da8dfd7c7a"
+  },
+  "hoTen": "Bùi Văn Tâm",
+  "canCuocCongDan": "017075000852",
+  "ngaySinh": {
+    "$date": "1975-06-12T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa tỉnh Phú Thọ",
+  "queQuan": "Xã Thanh Đình, TP Việt Trì, Tỉnh Phú Thọ",
+  "danToc": "Kinh",
+  "tonGiao": "Phật Giáo",
+  "ngheNghiep": "Hưu trí",
+  "noiLamViec": "Đã nghỉ hưu",
+  "trinhDoHocVan": "Đại học",
+  "soDienThoai": "0911223344",
+  "email": "bvt@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "69529f23924f94da8dfd7c5f"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:34:44.199Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:34:56.414Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529fa0924f94da8dfd7c9e"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "6952a0c5924f94da8dfd7cf9"
+  },
+  "hoTen": "Nguyễn Thị Mai",
+  "canCuocCongDan": "001200000963",
+  "ngaySinh": {
+    "$date": "2000-12-22T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Phụ sản Trung ương, Hà Nội",
+  "queQuan": "Xã Đông Hòa, Huyện Đông Hưng, Tỉnh Thái Bình",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Sinh viên",
+  "noiLamViec": "Đại học Kinh tế Quốc dân",
+  "trinhDoHocVan": "THPT",
+  "soDienThoai": "0967788990",
+  "email": "ntm@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a073924f94da8dfd7ce1"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:39:49.799Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:44:58.357Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "6952a1fa924f94da8dfd7d40"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "6952a2b6924f94da8dfd7dab"
+  },
+  "hoTen": "Hồ Quốc Khánh",
+  "canCuocCongDan": "049087000147",
+  "ngaySinh": {
+    "$date": "1987-05-05T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa Kiên Giang",
+  "queQuan": "Phường Vĩnh Thanh, TP Rạch Giá, Tỉnh Kiên Giang",
+  "danToc": "Kinh",
+  "tonGiao": "Thiên Chúa Giáo",
+  "ngheNghiep": "Kỹ thuật điện",
+  "noiLamViec": "Điện lực Hà Nội",
+  "trinhDoHocVan": "Đại học",
+  "soDienThoai": "0944556677",
+  "email": "hqk123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a219924f94da8dfd7d88"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:48:06.038Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:48:20.011Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "6952a2c4924f94da8dfd7dca"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "6952a408924f94da8dfd7e24"
+  },
+  "hoTen": "Dương Thị Thúy",
+  "canCuocCongDan": "060092000258",
+  "ngaySinh": {
+    "$date": "1992-08-11T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Hữu nghị Đa khoa Nghệ An",
+  "queQuan": "Xã Nghi Phú, TP Vinh, Tỉnh Nghệ An",
+  "danToc": "Mường",
+  "tonGiao": "Không",
+  "ngheNghiep": "Nhân viên ngân hàng",
+  "noiLamViec": "BIDV Chi nhánh Ba Đình",
+  "trinhDoHocVan": "Đại học",
+  "soDienThoai": "0973344556",
+  "email": "dtt@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a3b1924f94da8dfd7e0d"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:53:44.472Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:53:56.148Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "6952a414924f94da8dfd7e48"
+  },
+  "quanHeVoiChuHo": "Chủ hộ"
+},
+{
+  "_id": {
+    "$oid": "6952a6a3924f94da8dfd8075"
+  },
+  "hoTen": "Trần Thị Hương",
+  "canCuocCongDan": "001087000456",
+  "ngaySinh": {
+    "$date": "1987-08-20T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Phụ sản Hà Nội",
+  "queQuan": "Xã Xuân Trường, Huyện Xuân Trường, Tỉnh Nam Định",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Nhân viên văn phòng",
+  "noiLamViec": "Công ty TNHH Dịch vụ An Phát",
+  "soDienThoai": "0977332211",
+  "email": "tth@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:04:51.909Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:05:16.358Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "695290ea924f94da8dfd78d7"
+  },
+  "quanHeVoiChuHo": "Vợ"
+},
+{
+  "_id": {
+    "$oid": "6952a771924f94da8dfd80f2"
+  },
+  "hoTen": "Nguyễn Minh Đức",
+  "canCuocCongDan": "015753892002",
+  "ngaySinh": {
+    "$date": "2000-06-15T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện E, Hà Nội",
+  "queQuan": "Xã Hải Đông, Huyện Hải Hậu, Tỉnh Nam Định",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Học sinh",
+  "noiLamViec": "Trường Tiểu học Dịch Vọng",
+  "soDienThoai": "0986524376",
+  "email": "nmd@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:08:17.352Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:08:46.124Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "695290ea924f94da8dfd78d7"
+  },
+  "quanHeVoiChuHo": "Con"
+},
+{
+  "_id": {
+    "$oid": "6952a86c924f94da8dfd8171"
+  },
+  "hoTen": "Lê Hoàng Nam",
+  "canCuocCongDan": "079105000654",
+  "ngaySinh": {
+    "$date": "2005-09-10T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa Long Biên",
+  "queQuan": "Xã Mỹ Phước, Huyện Chợ Mới, Tỉnh An Giang",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Sinh viên",
+  "noiLamViec": "Đại học Giao thông Vận tải",
+  "soDienThoai": "0913778899",
+  "email": "lhn123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:12:28.488Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:13:04.418Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529dec924f94da8dfd7b1a"
+  },
+  "quanHeVoiChuHo": "Con"
+},
+{
+  "_id": {
+    "$oid": "6952a8da924f94da8dfd81dc"
+  },
+  "hoTen": "Nguyễn Văn Long",
+  "canCuocCongDan": "038086000987",
+  "ngaySinh": {
+    "$date": "1986-04-22T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa Đồng Nai",
+  "queQuan": "Xã Long Thành, Huyện Long Thành, Tỉnh Đồng Nai",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Kỹ sư cơ khí",
+  "noiLamViec": "Công ty Cơ khí Hòa Phát",
+  "soDienThoai": "0966123456",
+  "email": "nvl123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:14:18.293Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:14:18.293Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6952a953924f94da8dfd81fe"
+  },
+  "hoTen": "Nguyễn Gia Hân",
+  "canCuocCongDan": "079080000321",
+  "ngaySinh": {
+    "$date": "2006-01-01T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Phụ sản Hà Nội",
+  "queQuan": "Phường Thượng Đình, Quận Thanh Xuân, TP Hà Nội",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Sinh viên",
+  "noiLamViec": "Đại học Kinh tế Quốc dân",
+  "soDienThoai": "0965241908",
+  "email": "ngh@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:16:19.059Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:16:19.059Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6952a997924f94da8dfd8216"
+  },
+  "hoTen": "Trần Văn Phúc",
+  "canCuocCongDan": "043079000654",
+  "ngaySinh": {
+    "$date": "1979-12-12T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa Hà Nội",
+  "queQuan": "Xã Tân Lập, Huyện Đan Phượng, TP Hà Nội",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Tài xế",
+  "noiLamViec": "Công ty Vận tải Hà Nội",
+  "soDienThoai": "0906677889",
+  "email": "tvp123@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:17:27.864Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:55.507Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529f08924f94da8dfd7c1c"
+  },
+  "quanHeVoiChuHo": "Chồng"
+},
+{
+  "_id": {
+    "$oid": "6952a9fa924f94da8dfd8233"
+  },
+  "hoTen": "Nguyễn Thị Lý",
+  "canCuocCongDan": "017078000369",
+  "ngaySinh": {
+    "$date": "1978-09-09T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Đa khoa tỉnh Phú Thọ",
+  "queQuan": "Xã Thanh Đình, TP Việt Trì, Tỉnh Phú Thọ",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Nội trợ",
+  "noiLamViec": "Không",
+  "soDienThoai": "0988445566",
+  "email": "ntl@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:19:06.481Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:35.925Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529fa0924f94da8dfd7c9e"
+  },
+  "quanHeVoiChuHo": "Vợ"
+},
+{
+  "_id": {
+    "$oid": "6952aa47924f94da8dfd8250"
+  },
+  "hoTen": "Bùi Văn Hòa",
+  "canCuocCongDan": "017100000741",
+  "ngaySinh": {
+    "$date": "2000-05-05T00:00:00.000Z"
+  },
+  "gioiTinh": "Nam",
+  "noiSinh": "Bệnh viện Đa khoa tỉnh Phú Thọ",
+  "queQuan": "Xã Thanh Đình, TP Việt Trì, Tỉnh Phú Thọ",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Lao động tự do",
+  "noiLamViec": "Khu công nghiệp Quang Minh",
+  "soDienThoai": "0975384765",
+  "email": "bvh@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:20:23.183Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:25.713Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "69529fa0924f94da8dfd7c9e"
+  },
+  "quanHeVoiChuHo": "Con"
+},
+{
+  "_id": {
+    "$oid": "6952aa9e924f94da8dfd826d"
+  },
+  "hoTen": "Lê Thị Thanh",
+  "canCuocCongDan": "049089000852",
+  "ngaySinh": {
+    "$date": "1989-07-17T00:00:00.000Z"
+  },
+  "gioiTinh": "Nữ",
+  "noiSinh": "Bệnh viện Phụ sản Kiên Giang",
+  "queQuan": "Phường Vĩnh Thanh, TP Rạch Giá, Tỉnh Kiên Giang",
+  "danToc": "Kinh",
+  "tonGiao": "Không",
+  "ngheNghiep": "Nhân viên bán hàng",
+  "noiLamViec": "Siêu Thị Cầu Giấy",
+  "soDienThoai": "0989700654",
+  "email": "ltt@gmail.com",
+  "quocTich": "Việt Nam",
+  "trangThai": "active",
+  "userId": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T16:21:50.681Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:10.619Z"
+  },
+  "__v": 0,
+  "hoKhauId": {
+    "$oid": "6952a2c4924f94da8dfd7dca"
+  },
+  "quanHeVoiChuHo": "Vợ"
+}]

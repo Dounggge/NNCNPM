@@ -1,0 +1,345 @@
+[{
+  "_id": {
+    "$oid": "695290ea924f94da8dfd78d7"
+  },
+  "soHoKhau": "HK001",
+  "diaChiThuongTru": "Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "695290d3924f94da8dfd7895"
+  },
+  "thanhVien": [
+    {
+      "$oid": "695290d3924f94da8dfd7895"
+    },
+    {
+      "$oid": "6952a6a3924f94da8dfd8075"
+    },
+    {
+      "$oid": "6952a771924f94da8dfd80f2"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "69529076924f94da8dfd787d"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T14:32:10.504Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:08:46.123Z"
+  },
+  "id": "HK001",
+  "__v": 2,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:39.940Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "69529c76924f94da8dfd7a81"
+  },
+  "soHoKhau": "HK002",
+  "diaChiThuongTru": "Số 88 phố Hoàng Mai, Phường Hoàng Văn Thụ, Quận Hoàng Mai, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "69529692924f94da8dfd79d1"
+  },
+  "thanhVien": [
+    {
+      "$oid": "69529692924f94da8dfd79d1"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "69529199924f94da8dfd7936"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:21:26.595Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:56:36.145Z"
+  },
+  "id": "HK002",
+  "__v": 0,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:36.145Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "69529dec924f94da8dfd7b1a"
+  },
+  "soHoKhau": "HK004",
+  "diaChiThuongTru": "Số 101 phố Nguyễn Trãi, Phường Thượng Đình, Quận Thanh Xuân, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "69529dd1924f94da8dfd7af6"
+  },
+  "thanhVien": [
+    {
+      "$oid": "69529dd1924f94da8dfd7af6"
+    },
+    {
+      "$oid": "6952a86c924f94da8dfd8171"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "69529d1d924f94da8dfd7ad3"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:27:40.362Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:13:04.417Z"
+  },
+  "id": "HK004",
+  "__v": 1,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:34.295Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "69529e8c924f94da8dfd7b9e"
+  },
+  "soHoKhau": "HK005",
+  "diaChiThuongTru": "Chung cư Sunrise Building, Phường Mỹ Đình 2, Quận Nam Từ Liêm, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "69529e77924f94da8dfd7b7a"
+  },
+  "thanhVien": [
+    {
+      "$oid": "69529e77924f94da8dfd7b7a"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "69529e1e924f94da8dfd7b62"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:30:20.578Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:56:31.944Z"
+  },
+  "id": "HK005",
+  "__v": 0,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:31.943Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "69529f08924f94da8dfd7c1c"
+  },
+  "soHoKhau": "HK006",
+  "diaChiThuongTru": "Số 27 phố Kim Ngưu, Phường Thanh Lương, Quận Hai Bà Trưng, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "69529efc924f94da8dfd7bfd"
+  },
+  "thanhVien": [
+    {
+      "$oid": "69529efc924f94da8dfd7bfd"
+    },
+    {
+      "$oid": "6952a997924f94da8dfd8216"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "69529eb6924f94da8dfd7be6"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:32:24.321Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:55.506Z"
+  },
+  "id": "HK006",
+  "__v": 1,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:29.755Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "69529fa0924f94da8dfd7c9e"
+  },
+  "soHoKhau": "HK007",
+  "diaChiThuongTru": "Thôn Đông Cao, Xã Tráng Việt, Huyện Mê Linh, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "69529f94924f94da8dfd7c7a"
+  },
+  "thanhVien": [
+    {
+      "$oid": "69529f94924f94da8dfd7c7a"
+    },
+    {
+      "$oid": "6952aa47924f94da8dfd8250"
+    },
+    {
+      "$oid": "6952a9fa924f94da8dfd8233"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "69529f23924f94da8dfd7c5f"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:34:56.413Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:35.924Z"
+  },
+  "id": "HK007",
+  "__v": 2,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:27.872Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "6952a1fa924f94da8dfd7d40"
+  },
+  "soHoKhau": "HK008",
+  "diaChiThuongTru": "Phòng 302 nhà A4 KTT Kim Liên, Phường Kim Liên, Quận Đống Đa, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "6952a0c5924f94da8dfd7cf9"
+  },
+  "thanhVien": [
+    {
+      "$oid": "6952a0c5924f94da8dfd7cf9"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "6952a073924f94da8dfd7ce1"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:44:58.355Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:56:25.743Z"
+  },
+  "id": "HK008",
+  "__v": 0,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:25.743Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "6952a2c4924f94da8dfd7dca"
+  },
+  "soHoKhau": "HK009",
+  "diaChiThuongTru": "Số 66 ngõ 75 Phạm Tuấn Tài, Phường Nghĩa Tân, Quận Cầu Giấy, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "6952a2b6924f94da8dfd7dab"
+  },
+  "thanhVien": [
+    {
+      "$oid": "6952a2b6924f94da8dfd7dab"
+    },
+    {
+      "$oid": "6952aa9e924f94da8dfd826d"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "6952a219924f94da8dfd7d88"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:48:20.010Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T16:22:10.617Z"
+  },
+  "id": "HK009",
+  "__v": 1,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:22.065Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+},
+{
+  "_id": {
+    "$oid": "6952a414924f94da8dfd7e48"
+  },
+  "soHoKhau": "HK010",
+  "diaChiThuongTru": "Số 9 phố Phan Đình Phùng, Phường Quán Thánh, Quận Ba Đình, TP Hà Nội",
+  "ngayLap": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "chuHo": {
+    "$oid": "6952a408924f94da8dfd7e24"
+  },
+  "thanhVien": [
+    {
+      "$oid": "6952a408924f94da8dfd7e24"
+    }
+  ],
+  "trangThai": "active",
+  "nguoiTao": {
+    "$oid": "6952a3b1924f94da8dfd7e0d"
+  },
+  "createdAt": {
+    "$date": "2025-12-29T15:53:56.146Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:56:19.841Z"
+  },
+  "id": "HK010",
+  "__v": 0,
+  "ngayDuyet": {
+    "$date": "2025-12-29T15:56:19.841Z"
+  },
+  "nguoiDuyet": {
+    "$oid": "6952a42d924f94da8dfd7e8b"
+  }
+}]

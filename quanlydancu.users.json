@@ -1,0 +1,189 @@
+[{
+  "_id": {
+    "$oid": "69529076924f94da8dfd787d"
+  },
+  "userName": "hhh123",
+  "password": "$2b$10$RODMTRcYye0L.D.OmVAaJOOau8yh0Hx7nBf5Fc8EMdaJ81hj.q2fS",
+  "hoTen": "Nguyễn Văn Hùng",
+  "canCuocCongDan": "001085000123",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "695290d3924f94da8dfd7895"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T14:30:14.616Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T14:31:47.712Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69529199924f94da8dfd7936"
+  },
+  "userName": "lll123",
+  "password": "$2b$10$l8MzMcai1ylAidwhZFsQ0.05635BWZt4qQ/mHcqylullvH0aIv/Ti",
+  "hoTen": "Trần Thị Lan",
+  "canCuocCongDan": "001090000456",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "69529692924f94da8dfd79d1"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T14:35:05.298Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T14:56:18.766Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69529d1d924f94da8dfd7ad3"
+  },
+  "userName": "lvm123",
+  "password": "$2b$10$aYlP/fV8jxW8u4BZ6gKRQOTqS0AdKWBmktdqyT4eOROI/Bk7BQa7O",
+  "hoTen": "Lê Văn Minh",
+  "canCuocCongDan": "079078000789",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "69529dd1924f94da8dfd7af6"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:24:13.108Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:27:13.634Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69529e1e924f94da8dfd7b62"
+  },
+  "userName": "dqb123",
+  "password": "$2b$10$U7Tlk8HPjBrB.6Sg67fG4ubhqNlng/3.D5jeL2FfuFE9T4ozkLJhq",
+  "hoTen": "Đặng Quốc Bảo",
+  "canCuocCongDan": "031095000654",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "69529e77924f94da8dfd7b7a"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:28:30.235Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:29:59.161Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69529eb6924f94da8dfd7be6"
+  },
+  "userName": "vth123",
+  "password": "$2b$10$AMXq5o4fwFX/cn4LMVzvr.S.Ym0T61L23CmOsPiw06.rWqbU3WYR2",
+  "hoTen": "Võ Thị Hạnh",
+  "canCuocCongDan": "043082000987",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "69529efc924f94da8dfd7bfd"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:31:02.891Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:32:12.424Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69529f23924f94da8dfd7c5f"
+  },
+  "userName": "bvt123",
+  "password": "$2b$10$QDr.YHPtUOKvis3/AE0bY.IQbJgI.mZqi9JrAx1rnXlVXcG8REiXG",
+  "hoTen": "Bùi Văn Tâm",
+  "canCuocCongDan": "017075000852",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "69529f94924f94da8dfd7c7a"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:32:51.228Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:34:44.208Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6952a073924f94da8dfd7ce1"
+  },
+  "userName": "ntm123",
+  "password": "$2b$10$nG7eVG5H.86f40gwcciGve/X5puu3yVQeg3dWmucy4Ucgk8.50Vp2",
+  "hoTen": "Nguyễn Thị Mai",
+  "canCuocCongDan": "001200000963",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "6952a0c5924f94da8dfd7cf9"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:38:27.757Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:39:49.809Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6952a219924f94da8dfd7d88"
+  },
+  "userName": "hqk123",
+  "password": "$2b$10$Xd0H7ivUJo9E3JM0LgQbKOTnr8H9rN24xPcDEX9Xf0vPSeylOE6T.",
+  "hoTen": "Hồ Quốc Khánh",
+  "canCuocCongDan": "049087000147",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "6952a2b6924f94da8dfd7dab"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:45:29.886Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:48:06.047Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6952a3b1924f94da8dfd7e0d"
+  },
+  "userName": "dtt123",
+  "password": "$2b$10$lAILDaGfqBsNrj9wKVMdxOrpvspkHV/xRn8tUAb58Rg4XUjL2ufXy",
+  "hoTen": "Dương Thị Thúy",
+  "canCuocCongDan": "060092000258",
+  "vaiTro": "dan_cu",
+  "nhanKhauId": {
+    "$oid": "6952a408924f94da8dfd7e24"
+  },
+  "trangThai": "active",
+  "createdAt": {
+    "$date": "2025-12-29T15:52:17.365Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-29T15:53:44.484Z"
+  },
+  "__v": 0
+}]
